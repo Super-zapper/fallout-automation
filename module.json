@@ -1,0 +1,24 @@
+{
+  "id": "fallout-automation",
+  "title": "Fallout Automation",
+  "description": "Automation for Fallout 2d20 on Foundry VTT: attack → damage handoff with targets and hit location, difficulty and success verdict in roll dialogs, damage application with armor, stun and persistent damage, GM-confirmed skill checks. English and Russian. / Автоматизация Fallout 2d20: цели и зона попадания из атаки в урон, сложность и вердикт в окне броска, применение урона с бронёй, оглушение и продолжительный урон, проверки навыков с подтверждением ГМа.",
+  "version": "0.3.0",
+  "authors": [],
+  "license": "MIT",
+  "compatibility": { "minimum": "13", "verified": "13" },
+  "esmodules": ["scripts/main.js"],
+  "languages": [
+    { "lang": "en", "name": "English", "path": "lang/en.json" },
+    { "lang": "ru", "name": "Русский", "path": "lang/ru.json" }
+  ],
+  "socket": true,
+  "relationships": {
+    "systems": [ { "id": "fallout", "type": "system", "compatibility": { "minimum": "11.16.0" } } ],
+    "requires": [ { "id": "socketlib", "type": "module" } ],
+    "recommends": [
+      { "id": "dfreds-convenient-effects", "type": "module" },
+      { "id": "times-up", "type": "module" },
+      { "id": "tagger", "type": "module" }
+    ]
+  }
+}

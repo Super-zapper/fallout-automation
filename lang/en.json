@@ -1,0 +1,294 @@
+{
+  "FALLOUT_AUTO": {
+    "settings": {
+      "blocks": {
+        "skillCheck": {
+          "name": "Skill check with GM confirmation",
+          "hint": "The runFalloutCheck function: a skill roll whose result the GM confirms."
+        },
+        "rollEngine": {
+          "name": "Roll Engine (targets and hit location)",
+          "hint": "Remembers the targets and hit location of an attack and passes them on to the damage roll."
+        },
+        "difficulty": {
+          "name": "Difficulty Engine (difficulty and verdict)",
+          "hint": "Calculates roll difficulty, shows success or failure, adds Action Points."
+        },
+        "damage": {
+          "name": "Damage Engine (damage)",
+          "hint": "Damage calculation and application, buttons on the chat card (GM only)."
+        },
+        "gmApproval": {
+          "name": "GM decision panel in chat",
+          "hint": "Accept the roll, force a success or a failure, or cancel the action."
+        },
+        "persistentDamage": {
+          "name": "Persistent damage",
+          "hint": "Automatically rolls damage from the Persistent effect at the end of the turn."
+        }
+      },
+      "icon": {
+        "hint": "Path to an image. Leave empty to use the default Foundry icon.",
+        "stun": {
+          "name": "Icon of the Stunned effect"
+        },
+        "persistent": {
+          "name": "Icon of the Persistent effect"
+        },
+        "prone": {
+          "name": "Icon of the Prone effect"
+        }
+      },
+      "ceRegister": {
+        "name": "Add effects to Convenient Effects",
+        "hint": "If Convenient Effects has no Stunned, Persistent or Prone effect, the module adds it on startup. Existing CE effects are never changed or overwritten."
+      }
+    },
+    "effects": {
+      "stun": {
+        "name": "Stunned",
+        "description": "<p>The target cannot take their Standard actions on their next turn. A stunned character or creature can still spend AP to buy additional actions as normal.</p>"
+      },
+      "persistent": {
+        "name": "Persistent"
+      },
+      "prone": {
+        "name": "Prone"
+      }
+    },
+    "rollEngine": {
+      "targetsCaptured": "Roll Engine: targets captured",
+      "noTargets": "No targets",
+      "auto": "Auto",
+      "targets": "Targets:",
+      "location": "Location (d20):"
+    },
+    "gmApproval": {
+      "accept": "Accept as is (actual roll)",
+      "forceSuccess": "Override: FORCE SUCCESS",
+      "forceFail": "Override: FORCE FAILURE",
+      "cancel": "Cancel the action entirely",
+      "apply": "Apply decision",
+      "cancelled": "The player's action was cancelled.",
+      "sent": "Decision sent."
+    },
+    "skillCheck": {
+      "noActor": "No actor was provided.",
+      "rollName": "Check: {skill} [{attr}]",
+      "requestTitle": "📡 CONFIRMATION REQUEST",
+      "player": "Player:",
+      "skill": "Skill:",
+      "realResult": "Actual result:",
+      "success": "SUCCESS",
+      "fail": "FAILURE",
+      "expected": "Expected action:",
+      "speaker": "Terminal System",
+      "rolled": "Roll made. Waiting for the Overseer's response...",
+      "forcedSuccess": "Forced Success",
+      "forcedFail": "Forced Failure",
+      "done": "Executed",
+      "rejected": "Cancelled by the GM",
+      "timeout": "The response timed out."
+    },
+    "persistentDamage": {
+      "summary": "Damage: <b>{damage}</b> | Effects: <b>{effects}</b>"
+    },
+    "damage": {
+      "stunApplied": "⚠️ STUN APPLIED",
+      "stunAlready": "(The target is already stunned)",
+      "libraryMissing": "FALLOUT_CUSTOM_LIBRARY is not loaded!",
+      "noTargetsOnScene": "No targets found on the scene!",
+      "immune": "completely ignores the damage because of immunities!",
+      "woundReopened": "🩸 WOUND REOPENED ({count})",
+      "reasonCrit": "Critical damage",
+      "reasonDrop": "Dropped to 0 HP",
+      "reasonAtZero": "Damage at 0 HP",
+      "vehicleInjuryCancelled": "⚠️ Injury cancelled: the vehicle is already damaged here",
+      "noInjurySlots": "(No free injury slots)",
+      "injuries": "🩸 INJURIES: +{count}",
+      "armorDetail": "(Base: {base}, Ignored: {ignore})",
+      "persistentDamage": "🔥 PERSISTENT DAMAGE ({rounds} rounds)",
+      "card": {
+        "target": "TARGET:",
+        "location": "LOCATION:",
+        "noLocation": "No location",
+        "auto": "(Auto)",
+        "damage": "DAMAGE:",
+        "armor": "ARMOR ({type}):"
+      },
+      "totalRad": "TOTAL: +{value} RAD",
+      "totalHp": "TOTAL: -{value} HP",
+      "radiationEffect": "☢️ RADIATION: +{value} (Effect)",
+      "totalTooltip": "Base: {base} + Effect bonus: {bonus}",
+      "noTargetSelect": "No target (select a token)",
+      "tagPierce": "Piercing: {value}",
+      "tagRad": "☢️ +{value} Rad",
+      "tagPersistent": "⏳ Pers. ({rounds} rds)",
+      "pureDamage": "Pure damage",
+      "targetsLabel": "🎯 TARGETS:",
+      "fromRoll": "From the roll ({count})",
+      "currentSelection": "Currently selected",
+      "titleDamage": "Damage",
+      "titleD20": "d20 roll",
+      "autoUpper": "AUTO",
+      "autoRollEach": "Auto-roll for each target",
+      "noTargetsSelected": "No targets selected, no damage dealt.",
+      "explosiveRemoved": "🗑️ Explosive \"{name}\" removed."
+    },
+    "difficulty": {
+      "range": {
+        "reach": "Reach",
+        "close": "Close",
+        "medium": "Medium",
+        "long": "Long",
+        "extreme": "Extreme"
+      },
+      "target": "Target: <b>{name}</b> (Defense: {defense})",
+      "distance": "Distance: {distance} sq. ({range})",
+      "explosivesEmpty": "⚠️ Explosive \"{name}\" has run out!",
+      "explosivesSpent": "⚠️ Explosive \"{name}\" has been used up!",
+      "blastInfo": "Base (Blast): 2 | Range to point: +{penalty} | Eff: {effects}",
+      "blastPending": "Base (Blast): 2 | Eff: {effects} | Choosing a point...",
+      "pointBlank": "⚠️ Point-blank firing penalty (+2 Diff)!",
+      "outOfMelee": "⚠️ Out of melee range!",
+      "penaltyDetail": "Defense: {defense} | Range: +{range} | Prone: {prone} | Effects: {effects}",
+      "baseDetail": "Base: 1 | Eff: {effects}",
+      "random": "Random",
+      "hitZone": "Hit location:",
+      "vatsActive": "🎯 V.A.T.S. active (no penalty for aiming)",
+      "difficulty": "Difficulty:",
+      "sneakAttack": "Sneak attack",
+      "baseGM": "Base (GM):",
+      "finalDiff": "Final Diff:",
+      "modifiers": "Modifiers: {value}",
+      "sneakNote": " | Sneaking (-1)",
+      "hitLocationLabel": "Hit Location:",
+      "sneakTitle": "🥷 Sneak attack",
+      "sneakText": "+2 CD (if Vicious), otherwise the Vicious effect",
+      "success": "SUCCESS",
+      "fail": "FAILURE",
+      "verdictDetail": "(Diff: {diff}, Succ: {successes})",
+      "apGM": "Add {gain} Overseer AP",
+      "apParty": "Add {gain} group AP",
+      "apAdded": "AP added"
+    },
+    "bodyLabels": {
+      "head": "Head/Optics",
+      "torso": "Torso/Body",
+      "armL": "L. Arm",
+      "armR": "R. Arm",
+      "legL": "L. Leg",
+      "legR": "R. Leg",
+      "Head_Optics_Head_Head": "Head/Optics",
+      "LeftArm_Arm1_LeftFrontLeg_LeftWingAsLeg": "Left Arm",
+      "LeftLeg_Arm3_LeftHindLeg_Legs": "Left Leg",
+      "RightArm_Arm2_RightFrontLeg_RightWingAsLeg": "Right Arm",
+      "RightLeg_Thruster_RightHindLeg_Legs": "Right Leg",
+      "Torso_MainBody_Torso_Torso": "Torso/Body",
+      "chassis": "Chassis",
+      "engine": "Engine",
+      "wheelFL": "Wheel (FL)",
+      "wheelFR": "Wheel (FR)",
+      "wheelML": "Wheel (ML)",
+      "wheelMR": "Wheel (MR)",
+      "wheelRL": "Wheel (RL)",
+      "wheelRR": "Wheel (RR)"
+    },
+    "injuryBases": {
+      "humanoid": {
+        "head": "Head",
+        "torso": "Torso",
+        "armL": "Left Arm",
+        "armR": "Right Arm",
+        "legL": "Left Leg",
+        "legR": "Right Leg"
+      },
+      "quadruped": {
+        "head": "Head",
+        "torso": "Torso",
+        "armL": "Left Front Leg",
+        "armR": "Right Front Leg",
+        "legL": "Left Hind Leg",
+        "legR": "Right Hind Leg"
+      },
+      "flyingInsect": {
+        "head": "Head",
+        "torso": "Torso",
+        "armL": "Left Wing",
+        "armR": "Right Wing",
+        "legL": "Left Leg",
+        "legR": "Right Leg"
+      },
+      "robot": {
+        "head": "Head",
+        "torso": "Torso",
+        "armL": "Arm 1",
+        "armR": "Arm 2",
+        "legL": "Arm 3",
+        "legR": "Thruster"
+      }
+    },
+    "bodyLabelsByType": {
+      "humanoid": {
+        "head": "Head",
+        "torso": "Torso",
+        "armL": "Left Arm",
+        "armR": "Right Arm",
+        "legL": "Left Leg",
+        "legR": "Right Leg"
+      },
+      "robot": {
+        "head": "Optics",
+        "torso": "Body",
+        "armL": "Arm 1",
+        "armR": "Arm 2",
+        "legL": "Arm 3",
+        "legR": "Thruster"
+      },
+      "quadruped": {
+        "head": "Head",
+        "torso": "Torso",
+        "armL": "Left Front Leg",
+        "armR": "Right Front Leg",
+        "legL": "Left Hind Leg",
+        "legR": "Right Hind Leg"
+      },
+      "flyingInsect": {
+        "head": "Head",
+        "torso": "Torso",
+        "armL": "Left Wing (as Leg)",
+        "armR": "Right Wing (as Leg)",
+        "legL": "Legs",
+        "legR": "Legs"
+      },
+      "vehicle": {
+        "chassis": "Chassis",
+        "engine": "Engine",
+        "engineL": "Left Engine",
+        "engineR": "Right Engine",
+        "weaponDG": "Weapon (Door Gun)",
+        "weaponNG": "Weapon (Nose Guns)",
+        "wheelF": "Front Wheel",
+        "wheelFL": "Front Left Wheel",
+        "wheelFR": "Front Right Wheel",
+        "wheelML": "Middle Left Wheel",
+        "wheelMR": "Middle Right Wheel",
+        "wheelR": "Rear Wheel",
+        "wheelRL": "Rear Left Wheel",
+        "wheelRR": "Rear Right Wheel",
+        "wheelRL1": "Rear Left Wheel 1",
+        "wheelRL2": "Rear Left Wheel 2",
+        "wheelRR1": "Rear Right Wheel 1",
+        "wheelRR2": "Rear Right Wheel 2",
+        "wingL": "Left Wing",
+        "wingR": "Right Wing"
+      }
+    },
+    "damageTypes": {
+      "physical": "Physical",
+      "energy": "Energy",
+      "radiation": "Radiation",
+      "poison": "Poison"
+    }
+  }
+}
