@@ -1,0 +1,46 @@
+name: Release
+
+# Запускается, когда на GitHub публикуют релиз (Releases → Draft a new release → Publish).
+# Подставляет версию и ссылки в module.json, собирает module.zip и прикладывает оба файла к релизу.
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fill in version and links in module.json
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          REPO: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          VERSION="${TAG#v}"
+          jq --arg v "$VERSION" --arg repo "$REPO" --arg owner "$OWNER" --arg tag "$TAG" '
+            .version = $v
+            | .url = "https://github.com/\($repo)"
+            | .manifest = "https://github.com/\($repo)/releases/latest/download/module.json"
+            | .download = "https://github.com/\($repo)/releases/download/\($tag)/module.zip"
+            | .readme = "https://github.com/\($repo)/blob/main/README.md"
+            | .bugs = "https://github.com/\($repo)/issues"
+            | .changelog = "https://github.com/\($repo)/blob/main/CHANGELOG.md"
+            | if (.authors | length) == 0 then .authors = [{"name": $owner, "url": "https://github.com/\($owner)"}] else . end
+          ' module.json > module.tmp
+          mv module.tmp module.json
+          cat module.json
+
+      - name: Build module.zip
+        run: zip -r module.zip module.json README.md LICENSE CHANGELOG.md scripts lang
+
+      - name: Attach files to the release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            module.json
+            module.zip
