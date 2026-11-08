@@ -18,7 +18,7 @@ Automation for the **Fallout 2d20** system on **Foundry VTT v13**. It links atta
 In Foundry: **Add-on Modules → Install Module**, paste this manifest URL and press Install:
 
 ```
-https://github.com/OWNER/REPO/releases/latest/download/module.json
+https://github.com/Super-zapper/fallout-automation/releases/latest/download/module.json
 ```
 
 Then enable the module in your world (it also needs socketlib).
@@ -74,7 +74,7 @@ English and Russian (`lang/en.json`, `lang/ru.json`). To add a language, copy `e
 В Foundry: **Модули → Установить модуль**, вставьте ссылку на манифест и нажмите «Установить»:
 
 ```
-https://github.com/OWNER/REPO/releases/latest/download/module.json
+https://github.com/Super-zapper/fallout-automation/releases/latest/download/module.json
 ```
 
 Затем включите модуль в мире (нужен также socketlib).
