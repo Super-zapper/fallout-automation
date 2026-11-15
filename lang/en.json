@@ -25,6 +25,10 @@
         "persistentDamage": {
           "name": "Persistent damage",
           "hint": "Automatically rolls damage from the Persistent effect at the end of the turn."
+        },
+        "sneak": {
+          "name": "Sneak attack: damage bonus",
+          "hint": "A sneak attack gives +2 CD to weapons that already have Vicious and adds the Vicious effect to all other weapons. Works together with the Difficulty Engine."
         }
       },
       "icon": {
@@ -59,9 +63,7 @@
     "rollEngine": {
       "targetsCaptured": "Roll Engine: targets captured",
       "noTargets": "No targets",
-      "auto": "Auto",
-      "targets": "Targets:",
-      "location": "Location (d20):"
+      "auto": "Auto"
     },
     "gmApproval": {
       "accept": "Accept as is (actual roll)",
@@ -75,7 +77,7 @@
     "skillCheck": {
       "noActor": "No actor was provided.",
       "rollName": "Check: {skill} [{attr}]",
-      "requestTitle": "📡 CONFIRMATION REQUEST",
+      "requestTitle": "CONFIRMATION REQUEST",
       "player": "Player:",
       "skill": "Skill:",
       "realResult": "Actual result:",
@@ -94,38 +96,40 @@
       "summary": "Damage: <b>{damage}</b> | Effects: <b>{effects}</b>"
     },
     "damage": {
-      "stunApplied": "⚠️ STUN APPLIED",
+      "stunApplied": "STUN APPLIED",
       "stunAlready": "(The target is already stunned)",
       "libraryMissing": "FALLOUT_CUSTOM_LIBRARY is not loaded!",
       "noTargetsOnScene": "No targets found on the scene!",
       "immune": "completely ignores the damage because of immunities!",
-      "woundReopened": "🩸 WOUND REOPENED ({count})",
+      "woundReopened": "WOUND REOPENED ({count})",
       "reasonCrit": "Critical damage",
       "reasonDrop": "Dropped to 0 HP",
       "reasonAtZero": "Damage at 0 HP",
-      "vehicleInjuryCancelled": "⚠️ Injury cancelled: the vehicle is already damaged here",
+      "vehicleInjuryCancelled": "Injury cancelled: the vehicle is already damaged here",
       "noInjurySlots": "(No free injury slots)",
-      "injuries": "🩸 INJURIES: +{count}",
+      "injuries": "INJURIES: +{count}",
       "armorDetail": "(Base: {base}, Ignored: {ignore})",
-      "persistentDamage": "🔥 PERSISTENT DAMAGE ({rounds} rounds)",
+      "persistentDamage": "PERSISTENT DAMAGE ({rounds} rounds)",
       "card": {
         "target": "TARGET:",
         "location": "LOCATION:",
         "noLocation": "No location",
         "auto": "(Auto)",
         "damage": "DAMAGE:",
-        "armor": "ARMOR ({type}):"
+        "armor": "ARMOR ({type}):",
+        "title": "Damage applied",
+        "type": "TYPE:"
       },
       "totalRad": "TOTAL: +{value} RAD",
       "totalHp": "TOTAL: -{value} HP",
-      "radiationEffect": "☢️ RADIATION: +{value} (Effect)",
+      "radiationEffect": "RADIATION: +{value} (Effect)",
       "totalTooltip": "Base: {base} + Effect bonus: {bonus}",
       "noTargetSelect": "No target (select a token)",
       "tagPierce": "Piercing: {value}",
-      "tagRad": "☢️ +{value} Rad",
-      "tagPersistent": "⏳ Pers. ({rounds} rds)",
+      "tagRad": "+{value} Rad",
+      "tagPersistent": "Pers. ({rounds} rds)",
       "pureDamage": "Pure damage",
-      "targetsLabel": "🎯 TARGETS:",
+      "targetsLabel": "TARGETS",
       "fromRoll": "From the roll ({count})",
       "currentSelection": "Currently selected",
       "titleDamage": "Damage",
@@ -133,7 +137,10 @@
       "autoUpper": "AUTO",
       "autoRollEach": "Auto-roll for each target",
       "noTargetsSelected": "No targets selected, no damage dealt.",
-      "explosiveRemoved": "🗑️ Explosive \"{name}\" removed."
+      "explosiveRemoved": "Explosive \"{name}\" removed.",
+      "panelTitle": "Apply damage",
+      "applyBtn": "Apply",
+      "reopenRollFlavor": "Treated injuries ({name}): {count}. Rolling to see which reopen (each effect reopens one)"
     },
     "difficulty": {
       "range": {
@@ -145,32 +152,40 @@
       },
       "target": "Target: <b>{name}</b> (Defense: {defense})",
       "distance": "Distance: {distance} sq. ({range})",
-      "explosivesEmpty": "⚠️ Explosive \"{name}\" has run out!",
-      "explosivesSpent": "⚠️ Explosive \"{name}\" has been used up!",
-      "blastInfo": "Base (Blast): 2 | Range to point: +{penalty} | Eff: {effects}",
-      "blastPending": "Base (Blast): 2 | Eff: {effects} | Choosing a point...",
-      "pointBlank": "⚠️ Point-blank firing penalty (+2 Diff)!",
-      "outOfMelee": "⚠️ Out of melee range!",
-      "penaltyDetail": "Defense: {defense} | Range: +{range} | Prone: {prone} | Effects: {effects}",
-      "baseDetail": "Base: 1 | Eff: {effects}",
+      "explosivesEmpty": "Explosive \"{name}\" has run out!",
+      "explosivesSpent": "Explosive \"{name}\" has been used up!",
+      "blastPending": "choose a point…",
+      "pointBlank": "Point-blank firing penalty (+2 Diff)!",
+      "outOfMelee": "Out of melee range!",
       "random": "Random",
       "hitZone": "Hit location:",
-      "vatsActive": "🎯 V.A.T.S. active (no penalty for aiming)",
+      "vatsActive": "V.A.T.S. active (no penalty for aiming)",
       "difficulty": "Difficulty:",
       "sneakAttack": "Sneak attack",
       "baseGM": "Base (GM):",
       "finalDiff": "Final Diff:",
       "modifiers": "Modifiers: {value}",
-      "sneakNote": " | Sneaking (-1)",
       "hitLocationLabel": "Hit Location:",
-      "sneakTitle": "🥷 Sneak attack",
-      "sneakText": "+2 CD (if Vicious), otherwise the Vicious effect",
+      "sneakTitle": "Sneak attack",
+      "sneakText": "Difficulty -1. Damage: +2 CD if the weapon already has Vicious, otherwise the weapon gains the Vicious effect.",
       "success": "SUCCESS",
       "fail": "FAILURE",
       "verdictDetail": "(Diff: {diff}, Succ: {successes})",
       "apGM": "Add {gain} Overseer AP",
       "apParty": "Add {gain} group AP",
-      "apAdded": "AP added"
+      "apAdded": "AP added",
+      "apFailed": "Could not add AP. See the console (F12) for details.",
+      "blastTargets": "Targets in the blast area: {count}",
+      "bd": {
+        "defense": "Defense",
+        "range": "Range",
+        "prone": "Prone",
+        "effects": "Eff.",
+        "zone": "Aim",
+        "sneak": "Sneak",
+        "base": "Base",
+        "blast": "Blast"
+      }
     },
     "bodyLabels": {
       "head": "Head/Optics",
@@ -289,6 +304,12 @@
       "energy": "Energy",
       "radiation": "Radiation",
       "poison": "Poison"
+    },
+    "sneak": {
+      "dialogCd": "Sneak attack: +2 CD added to the damage roll (weapon is already Vicious).",
+      "dialogVicious": "Sneak attack: the weapon gains the Vicious effect (+1 damage per effect rolled).",
+      "noteCd": "Sneak attack: +2 CD on the damage roll",
+      "noteVicious": "Sneak attack: Vicious effect (+{bonus} damage)"
     }
   }
 }

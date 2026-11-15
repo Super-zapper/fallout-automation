@@ -30,6 +30,7 @@ Every block can be switched off in the module settings.
 | Block | What it does |
 |---|---|
 | Roll Engine | Remembers the targets and hit location of an attack and passes them to the damage roll. |
+| Sneak attack | Applies the sneak attack damage bonus: +2 CD for Vicious weapons, otherwise adds the Vicious effect. |
 | Difficulty Engine | Adds difficulty, range, defense, sneak attack and hit-zone controls to roll dialogs; shows a success/failure verdict and AP buttons in chat. |
 | Damage Engine | Applies damage with armor, injuries, radiation, stun and persistent damage from the chat card (GM only). |
 | GM approval | Skill checks the GM can accept, force to success or failure, or cancel. |
@@ -86,6 +87,7 @@ https://github.com/Super-zapper/fallout-automation/releases/latest/download/modu
 | Блок | Что делает |
 |---|---|
 | Roll Engine | Запоминает цели и зону попадания атаки и передаёт их в бросок урона. |
+| Скрытная атака | Бонус к урону скрытной атаки: +2 БК для оружия с Жестоким, иначе добавляет эффект Жестокий. |
 | Difficulty Engine | Добавляет в окно броска сложность, дистанцию, защиту, скрытную атаку и выбор зоны; показывает вердикт и кнопки ОД в чате. |
 | Damage Engine | Применяет урон с бронёй, травмами, радиацией, оглушением и продолжительным уроном из карточки чата (только ГМ). |
 | Окно решения ГМа | Проверки навыков, которые ГМ может принять, засчитать как успех или провал, либо отменить. |

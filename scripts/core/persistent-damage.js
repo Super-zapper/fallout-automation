@@ -79,7 +79,7 @@ export function register() {
             const contentHtml = `
             <div class="fallout-chat-message">
                 <div class="content">
-                    <h2>🔥 ${effect.name}</h2>
+                    <h2>${effect.name}</h2>
                     <div class="damage-plaq flexrow">
                         <p class="flexlarge" style="margin:0;">
                             ${t("persistentDamage.summary", { damage: totalDamage, effects: totalEffects })}

@@ -5,6 +5,7 @@
 // ==========================================================
 import { onChatRender } from "../utils/hooks.js";
 import { t } from "../utils/i18n.js";
+import { esc } from "../utils/html.js";
 
 export function register() {
     // ==========================================
@@ -84,22 +85,7 @@ export function register() {
 
         // Отрисовка для Атаки
         if (reFlags.isAttack) {
-            html.find('h2').append(` <i class="fas fa-crosshairs" title="${t('rollEngine.targetsCaptured')}" style="color: #ff9800; font-size: 0.7em;"></i>`);
-        }
-
-        // Отрисовка для Урона
-        if (reFlags.isDamage) {
-            const targetNames = reFlags.targets.length > 0 ? reFlags.targets.map(t => t.name).join(", ") : t("rollEngine.noTargets");
-            const loc = reFlags.hitLocation || t("rollEngine.auto");
-        
-            // Добавляем красивую плашку прямо в карточку урона
-            const infoHtml = `
-                <div style="background: #111; border: 1px solid #ff9800; color: #ff9800; padding: 4px; margin-top: 5px; text-align: center; font-family: 'Courier New'; font-size: 12px; border-radius: 3px;">
-                    🎯 <b>${t("rollEngine.targets")}</b> ${targetNames}<br>
-                    🦴 <b>${t("rollEngine.location")}</b> ${loc}
-                </div>
-            `;
-            html.find('.damage-plaq').after(infoHtml);
+            html.find('h2').first().append(` <i class="fas fa-crosshairs" title="${esc(t('rollEngine.targetsCaptured'))}" style="color: #18ff62; font-size: 0.7em; text-shadow: 0 0 4px #18ff62;"></i>`);
         }
     });
 }

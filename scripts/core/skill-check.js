@@ -4,6 +4,7 @@
 // кроме замены хука renderChatMessage на onChatRender (см. utils/hooks.js).
 // ==========================================================
 import { t } from "../utils/i18n.js";
+import { esc, row, alertBox } from "../utils/html.js";
 
 export function register() {
     // ==========================================================
@@ -82,17 +83,15 @@ export function register() {
         // ==========================================================
     
         // Формируем контент для ГМа
-        const gmContent = `
-            <div style="font-weight:bold; text-align:center; border-bottom:1px solid #444; margin-bottom:5px;">
-                ${t("skillCheck.requestTitle")}
-            </div>
-            <div><b>${t("skillCheck.player")}</b> ${game.user.name}</div>
-            <div><b>${t("skillCheck.skill")}</b> ${localizedSkillName}</div>
-            <div><b>${t("skillCheck.realResult")}</b> ${rollResult.success ? `<span style='color:green'>${t("skillCheck.success")}</span>` : `<span style='color:red'>${t("skillCheck.fail")}</span>`} (${rollResult.successes} vs ${rollResult.diff})</div>
-            <div style="font-size:0.9em; margin-top:5px; font-style:italic; color:#aaa;">
-                ${t("skillCheck.expected")} ${rollResult.success ? successLabel : failLabel}
-            </div>
-        `;
+        const gmContent = `
+            <div class="fa-term">
+                <div class="fa-title">${t("skillCheck.requestTitle")}</div>
+                ${row(t("skillCheck.player"), esc(game.user.name))}
+                ${row(t("skillCheck.skill"), esc(localizedSkillName))}
+                ${row(t("skillCheck.realResult"), `<span style="color: ${rollResult.success ? "var(--fa-bright)" : "var(--fa-danger)"};">${rollResult.success ? t("skillCheck.success") : t("skillCheck.fail")}</span> (${rollResult.successes} vs ${rollResult.diff})`)}
+                <div class="fa-note" style="margin-top: 4px;">${t("skillCheck.expected")} ${esc(rollResult.success ? successLabel : failLabel)}</div>
+            </div>
+        `;
 
         // Создаем сообщение-виспа ГМу (blind скрывает его от отправителя-игрока)
         const approvalMsg = await ChatMessage.create({
@@ -132,12 +131,12 @@ export function register() {
                         overrideText = ` <i>(${t("skillCheck.forcedFail")})</i>`;
                     }
 
-                    await msg.update({ content: msg.content + `<br><b style='color:green'>✅ ${t("skillCheck.done")}${overrideText}</b>` });
+                    await msg.update({ content: msg.content + `<div class="fa-term">${alertBox(`${t("skillCheck.done")}${overrideText}`)}</div>` });
                     resolve({ status: "done", success: finalSuccess, successes: rollResult.successes, complications: rollResult.complications });
                 } 
                 else if (statusData.status === "rejected") {
                     clearInterval(checkInterval);
-                    await msg.update({ content: msg.content + `<br><b style='color:red'>❌ ${t("skillCheck.rejected")}</b>` });
+                    await msg.update({ content: msg.content + `<div class="fa-term">${alertBox(t("skillCheck.rejected"), "danger")}</div>` });
                     resolve({ status: "rejected" });
                 }
             }, 500);
