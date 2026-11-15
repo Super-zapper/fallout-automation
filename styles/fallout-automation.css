@@ -1,0 +1,164 @@
+/* ==========================================================
+   Fallout Automation: единый «терминальный» стиль для всех вставок в чат.
+   Палитра и шрифт взяты из терминала и карточки урона:
+   тёмно-зелёный фон, зелёный текст, моноширинный шрифт, лёгкая «развёртка».
+   Цвета меняются в одном месте, в переменных ниже.
+   ========================================================== */
+.fa-term {
+    --fa-bg: #051405;
+    --fa-bg-2: #0a1f0a;
+    --fa-line: #1b5e20;
+    --fa-main: #4caf50;
+    --fa-bright: #18ff62;
+    --fa-dim: #6e9c72;
+    --fa-warn: #ffb642;
+    --fa-danger: #ff5252;
+    --fa-rad: #39ff14;
+    --fa-pink: #e91e63;
+
+    position: relative;
+    box-sizing: border-box;
+    margin: 6px 0;
+    padding: 6px 8px;
+    background-color: var(--fa-bg);
+    background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%);
+    background-size: 100% 3px;
+    border: 1px solid var(--fa-line);
+    border-left: 3px solid var(--fa-bright);
+    border-radius: 2px;
+    color: var(--fa-main);
+    font-family: "Share Tech Mono", "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.35;
+    text-shadow: 0 0 4px rgba(24, 255, 98, 0.35);
+    text-align: left;
+}
+
+.fa-term *,
+.fa-term *::before,
+.fa-term *::after { box-sizing: border-box; }
+
+.fa-term .fa-title {
+    margin: 0 0 4px;
+    padding: 0 0 3px;
+    border: 0;
+    border-bottom: 1px solid var(--fa-line);
+    color: var(--fa-bright);
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: normal;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+.fa-term .fa-title::before { content: "> "; }
+
+.fa-term .fa-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    padding: 1px 0;
+}
+.fa-term .fa-row > .fa-k { color: var(--fa-dim); text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; flex: 0 0 auto; }
+.fa-term .fa-row > .fa-v { color: var(--fa-main); text-align: right; flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.fa-term .fa-v i[class^="fo-"],
+.fa-term .fa-v i[class*=" fo-"],
+.fa-term .fa-types i { font-size: 1.15em; vertical-align: -1px; margin-left: 2px; color: var(--fa-bright); }
+.fa-term .fa-note { color: var(--fa-dim); font-size: 10px; }
+
+.fa-term .fa-total {
+    margin-top: 4px;
+    padding-top: 4px;
+    border-top: 1px solid var(--fa-line);
+    color: #eaffea;
+    font-size: 1.2em;
+    letter-spacing: 1px;
+    text-shadow: 0 0 6px rgba(24, 255, 98, 0.6);
+}
+
+/* Строки-уведомления внутри карточки: оглушение, раны, радиация и т.д. */
+.fa-term .fa-alert {
+    margin-top: 5px;
+    padding: 2px 6px;
+    border: 1px solid var(--fa-line);
+    background: var(--fa-bg-2);
+    color: var(--fa-main);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 11px;
+}
+.fa-term .fa-alert .fa-note { display: block; text-transform: none; letter-spacing: 0; }
+.fa-term .fa-alert.fa-warn   { color: var(--fa-warn);   border-color: #6b4b10; background: #1d1403; }
+.fa-term .fa-alert.fa-danger { color: var(--fa-danger); border-color: #7a1f1f; background: #200505; }
+.fa-term .fa-alert.fa-rad    { color: var(--fa-rad);    border-color: #1f6b10; background: #0a1a0a; }
+.fa-term .fa-alert.fa-pink   { color: var(--fa-pink);   border-color: #6b1a3a; background: #1d0510; }
+.fa-term .fa-alert.fa-muted  { color: var(--fa-dim);    border-style: dashed; background: transparent; }
+
+/* Успех / провал */
+.fa-term.fa-verdict { text-align: center; }
+.fa-term .fa-result { font-size: 1.25em; letter-spacing: 3px; }
+.fa-term .fa-result.fa-ok   { color: var(--fa-bright); text-shadow: 0 0 8px rgba(24, 255, 98, 0.7); }
+.fa-term .fa-result.fa-fail { color: var(--fa-danger); text-shadow: 0 0 8px rgba(255, 82, 82, 0.6); }
+
+/* Элементы управления (панель урона, окно решения ГМа, кнопка ОД) */
+.fa-term select,
+.fa-term input[type="number"],
+.fa-term input[type="text"] {
+    height: 24px;
+    background: #000;
+    color: var(--fa-bright);
+    border: 1px solid var(--fa-line);
+    border-radius: 2px;
+    font-family: inherit;
+    font-size: 12px;
+    text-shadow: none;
+}
+.fa-term select option { background: #000; color: var(--fa-bright); }
+.fa-term select:focus,
+.fa-term input:focus { outline: none; border-color: var(--fa-bright); box-shadow: 0 0 5px rgba(24, 255, 98, 0.5); }
+.fa-term select:disabled,
+.fa-term input:disabled { opacity: 0.5; }
+
+.fa-term button.fa-btn {
+    height: 26px;
+    margin: 0;
+    padding: 0 8px;
+    background: transparent;
+    color: var(--fa-bright);
+    border: 1px solid var(--fa-bright);
+    border-radius: 2px;
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    line-height: 1;
+    text-shadow: inherit;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+.fa-term button.fa-btn:hover:not(:disabled) { background: var(--fa-bright); color: #001a06; text-shadow: none; }
+.fa-term button.fa-btn:disabled { color: var(--fa-dim); border-color: var(--fa-line); cursor: default; }
+
+.fa-term .fa-controls { display: flex; gap: 5px; align-items: center; margin-top: 4px; }
+.fa-term .fa-controls > select { flex: 1 1 auto; min-width: 0; }
+.fa-term .fa-controls > input[type="number"] { text-align: center; }
+.fa-term .fa-dmg-input { flex: 0 0 44px; color: var(--fa-warn) !important; }
+.fa-term .fa-hit-die { flex: 0 0 38px; }
+.fa-term .fa-targets { color: var(--fa-dim); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+.fa-term .fa-types { color: var(--fa-main); flex: 1; font-size: 11px; }
+.fa-term .fa-tags { color: var(--fa-bright); font-size: 10px; }
+
+/* Окно броска (диалог, а не чат): мелкие пометки без собственной рамки */
+.fa-dialog-note {
+    margin: 2px 5px 4px;
+    padding: 2px 6px;
+    background: #051405;
+    border: 1px solid #1b5e20;
+    border-left: 3px solid #18ff62;
+    color: #4caf50;
+    font-family: "Share Tech Mono", "Courier New", monospace;
+    font-size: 11px;
+    text-align: left;
+}
+.fa-dialog-note.fa-warn { color: #ffb642; border-color: #6b4b10; border-left-color: #ffb642; background: #1d1403; }

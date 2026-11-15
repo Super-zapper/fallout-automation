@@ -5,9 +5,80 @@
 // ==========================================================
 import { onChatRender } from "../utils/hooks.js";
 import * as fx from "./effects.js";
+import { addAP } from "./ap.js";
 import { t as tr } from "../utils/i18n.js";
+import { esc, row } from "../utils/html.js";
+
+
+// ==========================================================
+// Разбор сложности в окне броска атаки одной строкой.
+// Базовые значения (защита цели, база взрыва) показываются нейтрально, поправки красным (+, сложнее)
+// или зелёным (-, проще). Нулевые значения не выводятся. Если слагаемых много, шрифт слегка
+// уменьшается, чтобы строка не переносилась. Цвета заданы здесь, потому что окно броска светлое,
+// а не терминальное, и зелёный в нём означает именно «проще».
+// ==========================================================
+const BD_RED = "#c62828";
+const BD_GREEN = "#2e7d32";
+
+function renderBreakdown(html) {
+    const el = html.find(".fa-bd");
+    const bd = el.data("bd");
+    if (!el.length || !bd) return;
+
+    const terms = [...bd.base.map(b => ({ ...b, base: true })), ...bd.mods];
+
+    // Штраф +1 за выбранную часть тела: только если зона не случайная и нет V.A.T.S.
+    const loc = html.find('[name="hit-location"]').val();
+    if (loc && loc !== "random" && !bd.vats) terms.push({ label: tr("difficulty.bd.zone"), value: 1 });
+
+    // Скрытная атака: -1
+    if (html.find('[name="sneak-attack"]').is(":checked")) terms.push({ label: tr("difficulty.bd.sneak"), value: -1 });
+
+    const parts = terms
+        .filter(x => x.value !== 0)
+        .map(x => {
+            if (x.base) return `<span>${esc(x.label)} <b>${x.value}</b></span>`;
+            const color = x.value > 0 ? BD_RED : BD_GREEN;
+            const sign = x.value > 0 ? "+" : "\u2212";
+            return `<span>${esc(x.label)} <b style="color: ${color};">${sign}${Math.abs(x.value)}</b></span>`;
+        });
+    if (bd.attr) parts.push(`<span style="color: #777;">[${esc(bd.attr)}]</span>`);
+    if (bd.note) parts.push(`<span style="color: #777;">${esc(bd.note)}</span>`);
+
+    const size = parts.length <= 3 ? "0.82em" : parts.length === 4 ? "0.78em" : parts.length === 5 ? "0.72em" : "0.66em";
+    el.css({ "white-space": "nowrap", "font-size": size })
+      .html(parts.join(' <span style="color: #999;">\u00b7</span> '));
+}
 
 export function register() {
+    /** Снять все цели игрока. User#updateTokenTargets есть не во всех версиях Foundry (в v13 его нет). */
+    function clearTargets() {
+        if (typeof game.user.updateTokenTargets === "function") return game.user.updateTokenTargets([]);
+        for (const token of [...game.user.targets]) token.setTarget(false, { releaseOthers: false, groupSelection: true });
+        game.user.broadcastActivity?.({ targets: [] });
+    }
+
+    /**
+     * Граната: выбирает целями все токены, которых касается круг взрыва.
+     * Центр и радиус даны в пикселях сцены. Токен считается внутри, если его рамка пересекает круг.
+     * Цели ставятся группой (groupSelection), чтобы не сыпались уведомления «Цель: ...» на каждый токен.
+     */
+    function targetTokensInCircle(cx, cy, radiusPx) {
+        clearTargets();
+        const chosen = [];
+        for (const token of canvas.tokens.placeables) {
+            if (!token.actor) continue;
+            if (!game.user.isGM && (!token.visible || token.document.hidden)) continue;
+            const b = token.bounds;
+            const nearestX = Math.max(b.x, Math.min(cx, b.x + b.width));
+            const nearestY = Math.max(b.y, Math.min(cy, b.y + b.height));
+            if (Math.hypot(cx - nearestX, cy - nearestY) <= radiusPx) chosen.push(token);
+        }
+        for (const token of chosen) token.setTarget(true, { releaseOthers: false, groupSelection: true });
+        game.user.broadcastActivity?.({ targets: chosen.map(tk => tk.id) });
+        return chosen;
+    }
+
     /**
      * Определяем актёра, который кидает бросок.
      * Для оружия и макросов система передаёт актёра в диалог (app.actor).
@@ -131,12 +202,16 @@ export function register() {
         if (isWeaponRoll) {
             // 1. Точная проверка на качество Взрыв (Blast)
             const blastQuality = weapon.system?.damage?.weaponQuality?.blast;
-            isBlast = !!(blastQuality?.value === 1 || blastQuality === true);
+            isBlast = !!(blastQuality === true || blastQuality?.value === true || blastQuality?.value === 1);
+            if (!isBlast && weapon.system?.weaponType === "explosives") {
+                // Помощь в диагностике: у взрывчатки нет качества Blast в том виде, как его читает модуль
+                console.warn("Fallout Automation | Взрывчатка без распознанного качества Blast:", weapon.name, weapon.system?.damage?.weaponQuality);
+            }
         }
 
         if (isBlast && !app._blastTemplatePlaced) {
             app._blastTemplatePlaced = true; // Защита от зацикливания
-            game.user.updateTokenTargets([]); // ТОЧЕЧНЫЙ ФИКС: Очищаем цели мгновенно и без лишних запросов
+            clearTargets(); // Очищаем цели, пока игрок выбирает точку взрыва
             html.closest(".window-app").hide(); // Прячем окно целиком, чтобы не ломать верстку
 
             const radiusCells = 3.5; 
@@ -154,20 +229,25 @@ export function register() {
             canvas.templates.preview.addChild(template);
             await template.draw();
         
+            // Событие мыши на холсте: в новых версиях Foundry оно отдаёт getLocalPosition само, в старых через event.data
+            const localPosition = ev => ev.getLocalPosition ? ev.getLocalPosition(canvas.app.stage) : ev.data.getLocalPosition(canvas.app.stage);
+            // PIXI-холст: в новых версиях canvas.app.canvas, в старых canvas.app.view
+            const gameCanvas = () => canvas.app.canvas ?? canvas.app.view;
+
             const handlers = {};
             handlers.move = (event) => {
                 event.stopPropagation();
-                const pos = event.data.getLocalPosition(canvas.app.stage);
+                const pos = localPosition(event);
                 const snapped = canvas.grid.getCenterPoint(pos); 
                 template.document.updateSource({ x: snapped.x, y: snapped.y });
                 template.renderFlags.set({ refreshPosition: true, refreshShape: true });
             };
         
             handlers.leftClick = async (event) => {
-                if (event.data.originalEvent.button !== 0) return; 
+                if ((event.button ?? event.data?.originalEvent?.button) !== 0) return; 
                 event.stopPropagation();
                 cleanup();
-                const pos = event.data.getLocalPosition(canvas.app.stage);
+                const pos = localPosition(event);
                 const snapped = canvas.grid.getCenterPoint(pos);
                 templateData.x = snapped.x; templateData.y = snapped.y;
                 template.destroy();
@@ -179,6 +259,11 @@ export function register() {
                     // Запоминаем ID шаблона в самом диалоге, чтобы потом удалить
                     html.find('.fallout-dialog').attr("data-blast-template-id", created[0].id);
                 }
+
+                // --- АВТОВЫБОР ЦЕЛЕЙ В ЗОНЕ ВЗРЫВА ---
+                const radiusPx = distance * canvas.dimensions.distancePixels;
+                const inBlast = targetTokensInCircle(snapped.x, snapped.y, radiusPx);
+                ui.notifications.info(tr("difficulty.blastTargets", { count: inBlast.length }));
 
                 // --- ФИКС ДЛЯ ВЗРЫВА: Авторасчет сложности до точки ---
                 const shooterToken = actor?.getActiveTokens()[0] || canvas.tokens.controlled[0];
@@ -205,7 +290,16 @@ export function register() {
                     diffSelect.val(finalDiff);
                     diffSelect.attr('data-base-diff', finalDiff); // Запоминаем базу для скрытности
                 
-                    html.find('#range-info-row').html(`${tr("difficulty.blastInfo", { penalty: rPenalty, effects: effectDiffBonus })} ${attrKey ? `[${attrKey.toUpperCase()}]` : ""}`);
+                    html.find('.fa-bd').data("bd", {
+                        base: [{ label: tr("difficulty.bd.blast"), value: 2 }],
+                        mods: [
+                            { label: tr("difficulty.bd.range"), value: rPenalty },
+                            { label: tr("difficulty.bd.effects"), value: effectDiffBonus }
+                        ],
+                        vats: true,
+                        attr: attrKey ? attrKey.toUpperCase() : ""
+                    });
+                    renderBreakdown(html);
                 }
                 // ------------------------------------------------------
             
@@ -234,7 +328,7 @@ export function register() {
             const cleanup = () => {
                 canvas.stage.off("mousemove", handlers.move);
                 canvas.stage.off("mousedown", handlers.leftClick);
-                canvas.app.view.oncontextmenu = null;
+                gameCanvas().oncontextmenu = null;
             };
 
            // Функция восстановления интерфейса
@@ -251,7 +345,7 @@ export function register() {
 
             canvas.stage.on("mousemove", handlers.move);
             canvas.stage.on("mousedown", handlers.leftClick);
-            canvas.app.view.oncontextmenu = handlers.rightClick;
+            gameCanvas().oncontextmenu = handlers.rightClick;
 
                     app.options.close = () => {
                         const templateId = html.find('.fallout-dialog').attr("data-blast-template-id");
@@ -308,12 +402,13 @@ export function register() {
 
         let diffHtml = "";
         let autoDiff = 1;
+        let bd = null; // данные для строки разбора сложности (только для оружия)
     
         // ============================
         // ВАРИАНТ А: ОРУЖИЕ (Старый вид)
         // ============================
         if (isWeaponRoll) {
-            let penaltyDetail = "";
+            bd = { base: [], mods: [], vats: hasVats, attr: attrKey ? attrKey.toUpperCase() : "" };
             let meleeWarning = "";
             let rangePenalty = 0;
             let proneMod = 0;
@@ -322,7 +417,10 @@ export function register() {
             // Расчет дистанции и защиты
             if (isBlast) {
                 autoDiff = Math.max(0, 2 + effectDiffBonus);
-                penaltyDetail = `${tr("difficulty.blastPending", { effects: effectDiffBonus })}`;
+                bd.base.push({ label: tr("difficulty.bd.blast"), value: 2 });
+                bd.mods.push({ label: tr("difficulty.bd.effects"), value: effectDiffBonus });
+                bd.note = tr("difficulty.blastPending");
+                bd.vats = true;
             } else if (targets.length > 0) {
                 const target = targets[0];
                 const shooterToken = actor?.getActiveTokens()[0] || canvas.tokens.controlled[0];
@@ -346,16 +444,22 @@ export function register() {
                 
                     if (currentRange.key === "reach" && !isMelee && !hasCloseQuarters) {
                         rangePenalty += 2;
-                        meleeWarning = `<div style="color: #cc0000; font-weight: bold; margin-top: 4px; border: 1px solid #cc0000; padding: 2px; text-align: center;">${tr("difficulty.pointBlank")}</div>`;
+                        meleeWarning = `<div class="fa-dialog-note fa-warn" style="margin: 4px 0 0;">${tr("difficulty.pointBlank")}</div>`;
                     } else if (isMelee && distance > 1) {
-                        meleeWarning = `<div style="color: #cc0000; font-weight: bold; margin-top: 4px; border: 1px solid #cc0000; padding: 2px; text-align: center;">${tr("difficulty.outOfMelee")}</div>`;
+                        meleeWarning = `<div class="fa-dialog-note fa-warn" style="margin: 4px 0 0;">${tr("difficulty.outOfMelee")}</div>`;
                     }
 
-                    penaltyDetail = `${tr("difficulty.penaltyDetail", { defense: targetDefense, range: rangePenalty, prone: proneMod, effects: effectDiffBonus })}`;
+                    bd.base.push({ label: tr("difficulty.bd.defense"), value: targetDefense });
+                    bd.mods.push(
+                        { label: tr("difficulty.bd.range"), value: rangePenalty },
+                        { label: tr("difficulty.bd.prone"), value: proneMod },
+                        { label: tr("difficulty.bd.effects"), value: effectDiffBonus }
+                    );
                 }
             } else {
                 autoDiff = Math.max(0, 1 + effectDiffBonus);
-                penaltyDetail = `${tr("difficulty.baseDetail", { effects: effectDiffBonus })}`;
+                bd.base.push({ label: tr("difficulty.bd.base"), value: 1 });
+                bd.mods.push({ label: tr("difficulty.bd.effects"), value: effectDiffBonus });
             }
 
             // Итоговая сложность для оружия
@@ -396,7 +500,7 @@ export function register() {
                    </div>`;
             }
 
-            let vatsBadge = hasVats ? `<div style="margin: 0 5px 5px; background: #e8f5e9; border: 1px solid #4caf50; color: #1b5e20; text-align: center; font-weight: bold; padding: 2px; font-size: 0.85em; border-radius: 3px;">${tr("difficulty.vatsActive")}</div>` : "";
+            let vatsBadge = hasVats ? `<div class="fa-dialog-note">${tr("difficulty.vatsActive")}</div>` : "";
 
             diffHtml = `
                 <div class="flexrow resource" style="padding: 5px; border-top: 1px solid #7a7971; align-items: center;">
@@ -409,8 +513,8 @@ export function register() {
                 </div>
                 ${vatsBadge}
                 ${hitLocationHtml}
-                <div id="range-info-row" style="padding: 2px 5px 5px 5px; font-size: 0.8em; color: #444; font-style: italic;">
-                    ${penaltyDetail} ${attrKey ? `[${attrKey.toUpperCase()}]` : ""}
+                <div id="range-info-row" style="padding: 2px 5px 5px 5px; color: #444;">
+                    <div class="fa-bd" style="overflow: hidden;"></div>
                     ${meleeWarning}
                 </div>`;
         } 
@@ -450,6 +554,12 @@ export function register() {
         const dialogElem = html.find(".fallout-dialog");
         if (dialogElem.length) {
             dialogElem.append(diffHtml);
+            if (bd) {
+                html.find(".fa-bd").data("bd", bd);
+                renderBreakdown(html);
+                // Зона поражения и скрытная атака меняют строку разбора
+                html.find('[name="hit-location"], [name="sneak-attack"]').on("change", () => renderBreakdown(html));
+            }
             if (window.tempActionId) {
                 // Добавляем ID прямо в атрибут формы, так надежнее
                 dialogElem.attr("data-action-id", window.tempActionId);
@@ -497,18 +607,13 @@ export function register() {
             // Логика чекбокса
             html.find('[name="sneak-attack"]').on('change', (ev) => {
                 const isChecked = ev.currentTarget.checked;
-                const infoRow = html.find('#range-info-row');
                 // Берем "чистую" базу, которую запомнили
                 const baseVal = parseInt(diffSelect.attr('data-base-diff'));
             
                 if (isChecked) {
                     diffSelect.val(Math.max(0, baseVal - 1));
-                    if (!html.find('#sneak-note').length) {
-                        infoRow.append(`<span id="sneak-note" style="color: #006400;">${tr("difficulty.sneakNote")}</span>`);
-                    }
                 } else {
                     diffSelect.val(baseVal); // Возвращаем четко то, что было
-                    html.find('#sneak-note').remove();
                 }
             });
         } else {
@@ -678,30 +783,38 @@ export function register() {
         const successes = rollData.dicesRolled.reduce((total, d) => total + (d.success || 0), 0);
         const isSuccess = successes >= diff;
     
-        let sneakHtml = isSneak ? `<div style="margin-top: 5px; background: #e8f5e9; border: 1px solid #4caf50; border-radius: 3px; font-size: 0.85em; color: #1b5e20; padding: 4px; text-align: center;"><b>${tr("difficulty.sneakTitle")}</b><br>${tr("difficulty.sneakText")}</div>` : "";
+        // Вердикт в терминальном стиле: УСПЕХ / ПРОВАЛ, сложность и успехи, плашка скрытной атаки
+        const sneakHtml = isSneak
+            ? `<div class="fa-alert" style="text-align: left;">${esc(tr("difficulty.sneakTitle"))}<span class="fa-note">${esc(tr("difficulty.sneakText"))}</span></div>`
+            : "";
 
-        let verdictHtml = `<div class="difficulty-verdict" style="text-align:center; border-top: 1px solid #7a7971; padding-top: 5px; margin-top: 5px;">
-            <strong style="color: ${isSuccess ? "#00aa00" : "#cc0000"}; font-size: 1.1em;">${isSuccess ? tr("difficulty.success") : tr("difficulty.fail")}</strong> 
-            <span style="font-size: 0.9em; opacity: 0.8; font-weight: bold;">${tr("difficulty.verdictDetail", { diff, successes })}</span>
+        let verdictHtml = `<div class="difficulty-verdict fa-term fa-verdict">
+            <div class="fa-result ${isSuccess ? "fa-ok" : "fa-fail"}">${isSuccess ? tr("difficulty.success") : tr("difficulty.fail")}</div>
+            <div class="fa-note">${tr("difficulty.verdictDetail", { diff, successes })}</div>
             ${sneakHtml}
-        </div>`;
+        `;
 
         const apType = message.getFlag("world", "fallout-ap-type") || "partyAP";
         const apGain = successes - diff;
         if (isSuccess && apGain > 0 && (apType !== "gmAP" || game.user.isGM)) {
             const isUsed = message.getFlag("world", "ap-added");
             const label = apType === "gmAP" ? tr("difficulty.apGM", { gain: apGain }) : tr("difficulty.apParty", { gain: apGain });
-            verdictHtml += `<button class="add-party-ap" ${isUsed ? "disabled" : ""} data-ap="${apGain}" data-type="${apType}" style="margin-top: 5px; height: 24px; line-height: 10px; font-size: 0.8em;"><i class="fas fa-plus"></i> ${isUsed ? tr("difficulty.apAdded") : label}</button>`;
+            verdictHtml += `<div class="fa-controls" style="justify-content: center;"><button class="add-party-ap fa-btn" ${isUsed ? "disabled" : ""} data-ap="${apGain}" data-type="${apType}"><i class="fas fa-plus"></i> ${isUsed ? tr("difficulty.apAdded") : label}</button></div>`;
         }
+        verdictHtml += `</div>`;
 
         const target = html.find(".content");
         if (target.length && !html.find(".difficulty-verdict").length) {
             target.append(verdictHtml);
             html.find(".add-party-ap").click(async (ev) => {
                 if (message.getFlag("world", "ap-added")) return;
-                if (typeof fallout !== 'undefined' && fallout.APTracker) {
-                    await fallout.APTracker.adjustAP(ev.currentTarget.dataset.type, parseInt(ev.currentTarget.dataset.ap));
+                const { type, ap } = ev.currentTarget.dataset;
+                try {
+                    await addAP(type, parseInt(ap));
                     await message.setFlag("world", "ap-added", true);
+                } catch (err) {
+                    console.error("Fallout Automation | Не удалось добавить ОД:", err);
+                    ui.notifications.error(tr("difficulty.apFailed"));
                 }
             });
         }

@@ -6,6 +6,7 @@
 import { onChatRender } from "../utils/hooks.js";
 import { t as tr, hasKey } from "../utils/i18n.js";
 import * as fx from "./effects.js";
+import { esc, row, alertBox, damageIcon } from "../utils/html.js";
 
 export function register() {
     // Название типа урона на языке интерфейса (physical -> «Физический» / «Physical»)
@@ -67,9 +68,9 @@ export function register() {
             const validTypes = types.filter(t => !immunities[t]);
         
             if (validTypes.length === 0) {
-                ChatMessage.create({ 
-                    content: `<b>${target.name}</b> ${tr("damage.immune")}`, 
-                    author: game.user.id 
+                ChatMessage.create({
+                    content: `<div class="fa-term">${alertBox(`${esc(target.name)} ${tr("damage.immune")}`, "muted")}</div>`,
+                    author: game.user.id
                 });
                 continue;
             }
@@ -139,20 +140,45 @@ export function register() {
 
             // ВЫНОСИМ ПЕРЕМЕННЫЕ ВЫШЕ, чтобы использовать в механике открытия ран
             const partPath = `system.body_parts.${locationKey}`;
-            const injuries = [...(partData?.injuries || [])];
+            // У персонажей и транспорта раны лежат массивом (0 нет, 1 залечена, 2 открыта).
+            // У NPC и существ (creature) массива нет: хранятся только два числа, injuryOpenCount и injuryTreatedCount,
+            // поэтому для них собираем такой же массив из чисел и по итогам записываем обратно числа.
+            // Тип creature использует тот же лист, что и NPC, поэтому раны у него тоже счётчиками.
+            // Запасной признак: если у зоны нет массива injuries, считаем, что раны хранятся числами.
+            const countsModel = ["npc", "creature"].includes(actor.type) || !Array.isArray(partData?.injuries);
+            const injuries = countsModel
+                ? [
+                    ...Array(Math.max(0, Number(partData?.injuryOpenCount) || 0)).fill(2),
+                    ...Array(Math.max(0, Number(partData?.injuryTreatedCount) || 0)).fill(1),
+                ]
+                : [...(partData?.injuries || [])];
+            if (countsModel) while (injuries.length < 5) injuries.push(0);
+
+            // Записывает раны зоны в обновление актёра и возвращает счётчики
+            const writeInjuries = () => {
+                const openCount = injuries.filter(v => v === 2).length;
+                const treatedCount = injuries.filter(v => v === 1).length;
+                if (!countsModel) updateData[`${partPath}.injuries`] = injuries;
+                updateData[`${partPath}.injuryOpenCount`] = openCount;
+                updateData[`${partPath}.injuryTreatedCount`] = treatedCount;
+                return { openCount, treatedCount };
+            };
 
             // --- НАЧАЛО: МЕХАНИКА ОТКРЫТИЯ РАН ---
             if (finalDamage > 0) { 
                 const treatedIndexes = injuries.map((v, i) => v === 1 ? i : -1).filter(i => i !== -1);
+                console.debug(`Fallout Automation | Раны в зоне «${locationKey}»:`, JSON.stringify(injuries), "залеченных:", treatedIndexes.length);
             
                 if (treatedIndexes.length > 0) {
-                    // Изменено: используем dc вместо d6 для красоты Fallout
+                    // Бросок открытый: уходит в чат отдельным сообщением, поэтому его видят все,
+                    // а Dice So Nice подхватывает его сам. Кубы «dc» (боевые кубы Fallout), как и в броске урона.
                     const reopenRoll = await new Roll(`${treatedIndexes.length}dc`).evaluate();
-                
-                    // Триггер Dice So Nice
-                    if (game.dice3d) {
-                        await game.dice3d.showForRoll(reopenRoll, game.user, true);
-                    }
+                    const reopenMessage = await reopenRoll.toMessage({
+                        speaker: ChatMessage.getSpeaker({ actor }),
+                        flavor: tr("damage.reopenRollFlavor", { name: target.name, count: treatedIndexes.length })
+                    });
+                    // Ждём конца 3D-анимации, чтобы карточка расчёта не появилась раньше, чем остановятся кубы
+                    try { await game.dice3d?.waitFor3DAnimationByMessageID(reopenMessage.id); } catch (e) { /* без Dice So Nice */ }
 
                     // Считаем эффекты (выпало 5 или 6 на d6, что в dc является гранью с иконкой Fallout)
                     const effectsRolled = reopenRoll.terms[0].results.reduce((acc, d) => acc + (d.result >= 5 ? 1 : 0), 0);
@@ -163,15 +189,10 @@ export function register() {
                             injuries[treatedIndexes[i]] = 2; 
                         }
                     
-                        const openCount = injuries.filter(v => v === 2).length;
-                        const treatedCount = injuries.filter(v => v === 1).length;
-                    
-                        updateData[`${partPath}.injuries`] = injuries;
-                        updateData[`${partPath}.injuryOpenCount`] = openCount;
-                        updateData[`${partPath}.injuryTreatedCount`] = treatedCount;
+                        const { openCount } = writeInjuries();
                         updateData[`${partPath}.status`] = openCount > 0 ? "crippled" : "wounded";
 
-                        reopenHtml = `<div style="color: #ff5722; font-weight: bold; font-size: 1.05em; text-align: center; margin-top: 5px; padding: 2px; border: 1px dashed #ff5722; background: #2a0a00;">${tr("damage.woundReopened", { count: reopenedCount })}</div>`;
+                        reopenHtml = alertBox(tr("damage.woundReopened", { count: reopenedCount }), "danger");
                     }
                 }
             }
@@ -216,7 +237,7 @@ export function register() {
                     // Транспорт не может иметь больше одной открытой травмы в одной локации
                     if (isVehicle && hasOpenInjury) {
                         if (i === 0) {
-                            injuryHtml += `<div style="color: #ff9800; font-size: 0.9em; text-align: center; margin-top: 5px;">${tr("damage.vehicleInjuryCancelled")}</div>`;
+                            injuryHtml += alertBox(tr("damage.vehicleInjuryCancelled"), "warn");
                         }
                         break; 
                     } else {
@@ -228,7 +249,7 @@ export function register() {
                             appliedInjuriesCount++;
                         } else {
                             if (appliedInjuriesCount === 0) {
-                                injuryHtml += `<div style="color: #aaa; font-size: 0.9em; text-align: center; margin-top: 5px;">${tr("damage.noInjurySlots")}</div>`;
+                                injuryHtml += alertBox(tr("damage.noInjurySlots"), "muted");
                             }
                             break; 
                         }
@@ -236,21 +257,13 @@ export function register() {
                 }
 
                 if (appliedInjuriesCount > 0) {
-                    const openCount = injuries.filter(v => v === 2).length;
-                    const treatedCount = injuries.filter(v => v === 1).length;
+                    const { openCount, treatedCount } = writeInjuries();
                     let status = openCount > 0 ? "crippled" : (treatedCount > 0 ? "wounded" : "healthy");
 
-                    updateData[`${partPath}.injuries`] = injuries;
-                    updateData[`${partPath}.injuryOpenCount`] = openCount;
-                    updateData[`${partPath}.injuryTreatedCount`] = treatedCount;
                     updateData[`${partPath}.status`] = status;
 
                     const reasonsText = injuryReasons.join(" + ");
-                    injuryHtml += `
-                        <div style="color: #ff3333; background: #3a0000; border: 1px solid #cc0000; font-weight: bold; font-size: 1.1em; text-align: center; margin-top: 5px; padding: 2px;">
-                            ${tr("damage.injuries", { count: appliedInjuriesCount })} 
-                            <br><span style="font-size: 0.75em; font-weight: normal; color: #ffcccc;">(${reasonsText})</span>
-                        </div>`;
+                    injuryHtml += alertBox(tr("damage.injuries", { count: appliedInjuriesCount }), "danger", `(${esc(reasonsText)})`);
                 }
             }
             }
@@ -261,14 +274,14 @@ export function register() {
             if (finalDamage > 0 && newHP > 0 && !isRadiation && typeof playHurtSound === "function") {
                 playHurtSound(target);
             }
-            const typeIcons = { physical: "🛡️", energy: "⚡", radiation: "☢️", poison: "🧪" };
-            const typeLabel = validTypes.map(t => typeIcons[t] || t).join("+");
+            // Иконки типов урона берём из шрифта системы (fo-physical, fo-energy, fo-radiation, fo-poison)
+            const typeLabel = validTypes.map(t => damageIcon(t)).join("");
             const appliedLabel = appliedType ? damageTypeLabel(appliedType).toLocaleUpperCase() : "N/A";
 
             // Формируем красивую строку брони, если сработало пробитие
             let armorText = `-${effectiveResistance}`;
             if (armorPenetration > 0) {
-                armorText += ` <span style="color:#aaa; font-size: 0.8em;">${tr("damage.armorDetail", { base: bestResistance, ignore: armorPenetration })}</span>`;
+                armorText += ` <span class="fa-note">${tr("damage.armorDetail", { base: bestResistance, ignore: armorPenetration })}</span>`;
             }
 
             // --- ЛОГИКА ОГЛУШЕНИЯ (С ДЕБАГОМ) ---
@@ -278,9 +291,9 @@ export function register() {
 
                 if (!hasStun) {
                     await fx.applyEffect(actor, "stun");
-                    stunHtml = `<div style="color: #ffeb3b; font-weight: bold; font-size: 1.1em; text-align: center; margin-top: 5px;">${tr("damage.stunApplied")}</div>`;
+                    stunHtml = alertBox(tr("damage.stunApplied"), "warn");
                 } else {
-                    stunHtml = `<div style="color: #aaa; font-size: 0.9em; text-align: center; margin-top: 5px;">${tr("damage.stunAlready")}</div>`;
+                    stunHtml = alertBox(tr("damage.stunAlready"), "muted");
                 }
             }
 
@@ -297,24 +310,25 @@ export function register() {
                 // Накладываем эффект напрямую
                 await actor.createEmbeddedDocuments("ActiveEffect", [effectData]);
             
-                persistentHtml = `<div style="color: #e91e63; font-weight: bold; font-size: 1.1em; text-align: center; margin-top: 5px;">${tr("damage.persistentDamage", { rounds: persistentData.duration })}</div>`;
+                persistentHtml = alertBox(tr("damage.persistentDamage", { rounds: persistentData.duration }), "pink");
             }
 
             // Получаем красивый лейбл из библиотеки
             const locLabel = window.FALLOUT_CUSTOM_LIBRARY.getPartLabel(actor, locationKey);
 
-            const chatMsg = `
-                <div style="font-family: 'Courier New', monospace; border: 1px solid #444; padding: 5px; background: #051405; color: #4caf50; margin-bottom: 5px;">
-    <b>${tr("damage.card.target")}</b> ${target.name}<br>
-    <b>${tr("damage.card.location")}</b> ${skipTrauma ? `<span style="color: #e91e63;">${tr("damage.card.noLocation")}</span>` : locLabel} ${targets.length > 1 ? tr("damage.card.auto") : ''}<br>
-                    <b>${tr("damage.card.damage")}</b> ${amount} [${typeLabel}]<br>
-                    <b>${tr("damage.card.armor", { type: appliedLabel })}</b> ${armorText}<br>
-                    <hr style="border: 1px solid #1b3d1b;">
-                    <b style="color: #fff; font-size: 1.1em;">${isRadiation ? tr("damage.totalRad", { value: finalDamage + extraRadiation }) : tr("damage.totalHp", { value: finalDamage })}</b>
-                    ${extraRadiation > 0 && !isRadiation && !immunities.radiation ? `<div style="color: #39ff14; font-weight: bold; font-size: 1.05em; text-align: center; margin-top: 5px; padding: 2px; border: 1px solid #39ff14; background: #0a1a0a;">${tr("damage.radiationEffect", { value: extraRadiation })}</div>` : ''}
+            const showRadEffect = extraRadiation > 0 && !isRadiation && !immunities.radiation;
+            const chatMsg = `
+                <div class="fa-term">
+                    <div class="fa-title">${tr("damage.card.title")}</div>
+                    ${row(tr("damage.card.target"), esc(target.name))}
+                    ${row(tr("damage.card.location"), `${skipTrauma ? `<span style="color: var(--fa-pink);">${tr("damage.card.noLocation")}</span>` : esc(locLabel)}${targets.length > 1 ? ` <span class="fa-note">${tr("damage.card.auto")}</span>` : ""}`)}
+                    ${row(tr("damage.card.damage"), `${amount} ${typeLabel}`)}
+                    ${row(tr("damage.card.armor", { type: appliedLabel }), armorText)}
+                    <div class="fa-total">${isRadiation ? tr("damage.totalRad", { value: finalDamage + extraRadiation }) : tr("damage.totalHp", { value: finalDamage })}</div>
+                    ${showRadEffect ? alertBox(tr("damage.radiationEffect", { value: extraRadiation }), "rad") : ""}
                     ${stunHtml}
                     ${persistentHtml}
-                    ${reopenHtml} ${injuryHtml}
+                    ${reopenHtml}${injuryHtml}
                 </div>
             `;
 
@@ -454,7 +468,7 @@ export function register() {
             }
         }
         if (dmgTypes.length === 0) dmgTypes.push("physical");
-        const baseTypeString = dmgTypes.map(type => damageTypeLabel(type).toLocaleUpperCase()).join("+");
+        const baseTypeString = dmgTypes.map(type => `${damageIcon(type)} ${damageTypeLabel(type).toLocaleUpperCase()}`).join(" ");
         // Формируем красивые теги для интерфейса
         let effectTags = [];
         if (armorPenetration > 0) effectTags.push(tr("damage.tagPierce", { value: armorPenetration }));
@@ -463,7 +477,7 @@ export function register() {
         if (persistentData) effectTags.push(tr("damage.tagPersistent", { rounds: persistentData.duration }));
 
         const uiTypeString = effectTags.length > 0 
-            ? `${baseTypeString} <span style="color:#00e676; font-size:10px;">(${effectTags.join(", ")})</span>` 
+            ? `${baseTypeString} <span class="fa-tags">(${effectTags.join(", ")})</span>` 
             : baseTypeString;
 
     
@@ -501,7 +515,7 @@ export function register() {
         }
 
         // Собираем HTML выпадающего списка
-        let optionsHtml = `<option value="bypass" style="color: #e91e63;">${tr("damage.pureDamage")}</option>`;
+        let optionsHtml = `<option value="bypass">${tr("damage.pureDamage")}</option>`;
     
         // ВАЖНО: Берем ключи ТОЛЬКО из hitTable. 
         // Это отсечет все фантомные крылья и колеса, которые система пихает в чарник транспорта
@@ -534,40 +548,37 @@ export function register() {
                 selected = (key === 'torso' || key === 'chassis') ? "selected" : "";
             }
 
-            optionsHtml += `<option value="${key}" ${selected} style="background: #222; color: #fff;">${label}${rangeStr}</option>`;
+            optionsHtml += `<option value="${key}" ${selected}>${label}${rangeStr}</option>`;
         }
 
         // БЛОК ИНТЕРФЕЙСА В ЧАТЕ
         const panelId = `falcon-panel-${msg.id}`;
         const uiHtml = $(`
-            <div id="${panelId}" style="margin-top: 10px; border: 1px solid #ff9800; background: #111; padding: 8px; font-family: 'Courier New', monospace;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-                    <span style="color: #ff9800; font-weight: bold; font-size: 13px;">${tr("damage.targetsLabel")}</span>
-                    <select class="f-target-mode" style="background: #000; color: #ff9800; border: 1px solid #555; font-size: 11px; padding: 1px; max-width: 140px;">
+            <div id="${panelId}" class="fa-term">
+                <div class="fa-title" style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+                    <span style="flex: 1 1 auto;">${tr("damage.panelTitle")}</span>
+                    <select class="f-target-mode" style="flex: 0 1 140px; min-width: 0; height: 20px; font-size: 10px; text-transform: none; letter-spacing: 0;">
                         <option value="message">${tr("damage.fromRoll", { count: targets.length })}</option>
                         <option value="current">${tr("damage.currentSelection")}</option>
                     </select>
                 </div>
-                <div style="color: #888; font-size: 10px; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${targetNames}">
-                    ${targetNames}
-                </div>
-            
-                <div style="display: flex; gap: 5px; margin-bottom: 5px; align-items: center;">
-                    <input type="number" class="f-dmg" value="${damageValue}" title="${tr("damage.titleDamage")}" style="flex: 0 0 40px; text-align: center; background: #000; color: #ff9800; border: 1px solid #ff9800;">
-                    <span style="color: #aaa; font-size: 12px; flex: 1;">${uiTypeString}</span>
-                
+                <div class="fa-targets" title="${esc(targetNames)}">${tr("damage.targetsLabel")}: ${esc(targetNames)}</div>
+
+                <div class="fa-controls">
+                    <input type="number" class="f-dmg fa-dmg-input" value="${damageValue}" title="${tr("damage.titleDamage")}">
+                    <span class="fa-types">${uiTypeString}</span>
                     ${targets.length === 1 ? `
-                        <input type="number" class="f-hit-die" value="${autoHitLocation}" placeholder="d20" title="${tr("damage.titleD20")}" style="flex: 0 0 35px; text-align: center; background: #000; color: #fff; border: 1px solid #555;">
+                        <input type="number" class="f-hit-die fa-hit-die" value="${autoHitLocation}" placeholder="d20" title="${tr("damage.titleD20")}">
                     ` : `
-                        <span style="color: #777; font-size: 11px; flex: 0 0 35px; text-align: center;">${tr("damage.autoUpper")}</span>
+                        <span class="fa-note" style="flex: 0 0 38px; text-align: center;">${tr("damage.autoUpper")}</span>
                     `}
                 </div>
 
-                <div style="display: flex; gap: 5px; align-items: center;">
-                    <select class="f-hit-loc" style="flex: 1; background: #000; color: #fff; border: 1px solid #555; padding: 2px;" ${targets.length > 1 ? 'disabled' : ''}>
+                <div class="fa-controls">
+                    <select class="f-hit-loc" ${targets.length > 1 ? 'disabled' : ''}>
                         ${targets.length > 1 ? `<option value="auto">${tr("damage.autoRollEach")}</option>` : optionsHtml}
                     </select>
-                    <button type="button" class="f-apply-btn" style="flex: 0 0 30px; height: 26px; line-height: 10px; background: #ff9800; color: #000; border: none; cursor: pointer;">
+                    <button type="button" class="f-apply-btn fa-btn" title="${tr("damage.applyBtn")}" style="flex: 0 0 34px;">
                         <i class="fas fa-crosshairs"></i>
                     </button>
                 </div>

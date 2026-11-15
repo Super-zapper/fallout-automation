@@ -25,6 +25,10 @@
         "persistentDamage": {
           "name": "Продолжительный урон",
           "hint": "В конце хода автоматически бросает урон от эффекта «Продолжительный»."
+        },
+        "sneak": {
+          "name": "Скрытная атака: бонус к урону",
+          "hint": "Скрытная атака даёт +2 БК к урону оружию с эффектом Жестокий, остальному оружию добавляет эффект Жестокий. Работает вместе с Difficulty Engine."
         }
       },
       "icon": {
@@ -59,9 +63,7 @@
     "rollEngine": {
       "targetsCaptured": "Roll Engine: Цели захвачены",
       "noTargets": "Нет целей",
-      "auto": "Авто",
-      "targets": "Цели:",
-      "location": "Локация (d20):"
+      "auto": "Авто"
     },
     "gmApproval": {
       "accept": "Принять как есть (реальный бросок)",
@@ -75,7 +77,7 @@
     "skillCheck": {
       "noActor": "Не передан актёр.",
       "rollName": "Проверка: {skill} [{attr}]",
-      "requestTitle": "📡 ЗАПРОС ПОДТВЕРЖДЕНИЯ",
+      "requestTitle": "ЗАПРОС ПОДТВЕРЖДЕНИЯ",
       "player": "Игрок:",
       "skill": "Навык:",
       "realResult": "Реальный итог:",
@@ -94,38 +96,40 @@
       "summary": "Урон: <b>{damage}</b> | Эффекты: <b>{effects}</b>"
     },
     "damage": {
-      "stunApplied": "⚠️ НАЛОЖЕНО ОГЛУШЕНИЕ",
+      "stunApplied": "НАЛОЖЕНО ОГЛУШЕНИЕ",
       "stunAlready": "(Цель уже оглушена)",
       "libraryMissing": "FALLOUT_CUSTOM_LIBRARY не загружена!",
       "noTargetsOnScene": "Цели не найдены на сцене!",
       "immune": "полностью игнорирует урон из-за иммунитетов!",
-      "woundReopened": "🩸 ОТКРЫЛАСЬ РАНА ({count})",
+      "woundReopened": "ОТКРЫЛАСЬ РАНА ({count})",
       "reasonCrit": "Крит. урон",
       "reasonDrop": "Падение в 0 ОЗ",
       "reasonAtZero": "Урон при 0 ОЗ",
-      "vehicleInjuryCancelled": "⚠️ Травма отменена: транспорт уже поврежден здесь",
+      "vehicleInjuryCancelled": "Травма отменена: транспорт уже поврежден здесь",
       "noInjurySlots": "(Нет свободных слотов для травм)",
-      "injuries": "🩸 ТРАВМЫ: +{count}",
+      "injuries": "ТРАВМЫ: +{count}",
       "armorDetail": "(База: {base}, Игнор: {ignore})",
-      "persistentDamage": "🔥 ПРОДОЛЖИТЕЛЬНЫЙ УРОН ({rounds} раунд.)",
+      "persistentDamage": "ПРОДОЛЖИТЕЛЬНЫЙ УРОН ({rounds} раунд.)",
       "card": {
         "target": "ЦЕЛЬ:",
         "location": "ЛОКАЦИЯ:",
         "noLocation": "Без локации",
         "auto": "(Авто)",
         "damage": "УРОН:",
-        "armor": "БРОНЯ ({type}):"
+        "armor": "БРОНЯ ({type}):",
+        "title": "Урон применён",
+        "type": "ТИП:"
       },
       "totalRad": "ИТОГО: +{value} РАД",
       "totalHp": "ИТОГО: -{value} HP",
-      "radiationEffect": "☢️ РАДИАЦИЯ: +{value} (Эффект)",
+      "radiationEffect": "РАДИАЦИЯ: +{value} (Эффект)",
       "totalTooltip": "Базовый: {base} + Бонус эффектов: {bonus}",
       "noTargetSelect": "Нет цели (выберите токен)",
       "tagPierce": "Пробитие: {value}",
-      "tagRad": "☢️ +{value} Рад",
-      "tagPersistent": "⏳ Прод. ({rounds} р.)",
+      "tagRad": "+{value} Рад",
+      "tagPersistent": "Прод. ({rounds} р.)",
       "pureDamage": "Чистый урон",
-      "targetsLabel": "🎯 ЦЕЛИ:",
+      "targetsLabel": "ЦЕЛИ",
       "fromRoll": "Из броска ({count})",
       "currentSelection": "Выделенные сейчас",
       "titleDamage": "Урон",
@@ -133,7 +137,10 @@
       "autoUpper": "АВТО",
       "autoRollEach": "Авто-ролл для каждой цели",
       "noTargetsSelected": "Цели не выбраны, урон не нанесён.",
-      "explosiveRemoved": "🗑️ Взрывчатка \"{name}\" удалена."
+      "explosiveRemoved": "Взрывчатка \"{name}\" удалена.",
+      "panelTitle": "Применение урона",
+      "applyBtn": "Применить",
+      "reopenRollFlavor": "Вылеченные травмы ({name}): {count} шт. Проверка, какие откроются снова (эффект на кубах = открытие)"
     },
     "difficulty": {
       "range": {
@@ -145,32 +152,40 @@
       },
       "target": "Цель: <b>{name}</b> (Защита: {defense})",
       "distance": "Дистанция: {distance} кл. ({range})",
-      "explosivesEmpty": "⚠️ Взрывчатка \"{name}\" закончилась!",
-      "explosivesSpent": "⚠️ Взрывчатка \"{name}\" была потрачена полностью!",
-      "blastInfo": "База (Взрыв): 2 | Дальность до точки: +{penalty} | Эфф: {effects}",
-      "blastPending": "База (Взрыв): 2 | Эфф: {effects} | Выбор точки...",
-      "pointBlank": "⚠️ Штраф за стрельбу в упор (+2 Сл)!",
-      "outOfMelee": "⚠️ Вне дистанции ближнего боя!",
-      "penaltyDetail": "Защита: {defense} | Дистанция: +{range} | Распластанность: {prone} | Эффекты: {effects}",
-      "baseDetail": "База: 1 | Эфф: {effects}",
+      "explosivesEmpty": "Взрывчатка \"{name}\" закончилась!",
+      "explosivesSpent": "Взрывчатка \"{name}\" была потрачена полностью!",
+      "blastPending": "выбор точки…",
+      "pointBlank": "Штраф за стрельбу в упор (+2 Сл)!",
+      "outOfMelee": "Вне дистанции ближнего боя!",
       "random": "Случайная",
       "hitZone": "Зона поражения:",
-      "vatsActive": "🎯 V.A.T.S. активен (без штрафа за зону)",
+      "vatsActive": "V.A.T.S. активен (без штрафа за зону)",
       "difficulty": "Сложность:",
       "sneakAttack": "Скрытная атака",
       "baseGM": "База (GM):",
       "finalDiff": "Итоговая Сл:",
       "modifiers": "Модификаторы: {value}",
-      "sneakNote": " | Скрытность (-1)",
       "hitLocationLabel": "Область Попадания:",
-      "sneakTitle": "🥷 Скрытая атака",
-      "sneakText": "+2 БК (если есть Жестокий), иначе эфф. Жестокий",
+      "sneakTitle": "Скрытная атака",
+      "sneakText": "Сложность -1. Урон: +2 БК, если у оружия уже есть Жестокий, иначе оружие получает эффект Жестокий.",
       "success": "УСПЕХ",
       "fail": "ПРОВАЛ",
       "verdictDetail": "(Сл: {diff}, Усп: {successes})",
       "apGM": "Добавить {gain} ОД Смотрителя",
       "apParty": "Добавить {gain} ОД группы",
-      "apAdded": "ОД добавлены"
+      "apAdded": "ОД добавлены",
+      "apFailed": "Не удалось добавить ОД. Подробности в консоли (F12).",
+      "blastTargets": "Целей в зоне взрыва: {count}",
+      "bd": {
+        "defense": "Защита",
+        "range": "Дист.",
+        "prone": "Распл.",
+        "effects": "Эфф.",
+        "zone": "Зона",
+        "sneak": "Скрыт.",
+        "base": "База",
+        "blast": "Взрыв"
+      }
     },
     "bodyLabels": {
       "head": "Голова/Оптика",
@@ -289,6 +304,12 @@
       "energy": "Энергетический",
       "radiation": "Радиационный",
       "poison": "Токсический"
+    },
+    "sneak": {
+      "dialogCd": "Скрытная атака: в бросок урона добавлено +2 БК (оружие уже Жестокое).",
+      "dialogVicious": "Скрытная атака: оружие получит эффект Жестокий (+1 к урону за каждый эффект).",
+      "noteCd": "Скрытная атака: +2 БК к броску урона",
+      "noteVicious": "Скрытная атака: эффект Жестокий (+{bonus} к урону)"
     }
   }
 }

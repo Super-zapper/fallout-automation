@@ -19,14 +19,16 @@ export function register() {
 
         // Генерируем HTML с Select'ом (Изменил цвета на светлый фон + черный текст)
         const btnHtml = `
-        <div class="gm-approval-actions" style="display:flex; flex-direction:column; gap:5px; margin-top:10px; border-top:1px solid #555; padding-top:10px;">
-            <select class="gm-override-select" style="width: 100%; padding: 4px; background: #e9e9e9; color: #000; border: 1px solid #777; border-radius: 3px;">
-                <option value="none" selected>${t("gmApproval.accept")}</option>
-                <option value="success">${t("gmApproval.forceSuccess")}</option>
-                <option value="fail">${t("gmApproval.forceFail")}</option>
-                <option value="cancel">${t("gmApproval.cancel")}</option>
-            </select>
-            <button class="apply-roll" style="background:#444; color:white; border:1px solid #777; transition: 0.2s; border-radius: 3px;"><i class="fas fa-check-circle"></i> ${t("gmApproval.apply")}</button>
+        <div class="gm-approval-actions fa-term">
+            <div class="fa-controls" style="flex-direction: column; align-items: stretch; margin-top: 0;">
+                <select class="gm-override-select">
+                    <option value="none" selected>${t("gmApproval.accept")}</option>
+                    <option value="success">${t("gmApproval.forceSuccess")}</option>
+                    <option value="fail">${t("gmApproval.forceFail")}</option>
+                    <option value="cancel">${t("gmApproval.cancel")}</option>
+                </select>
+                <button class="apply-roll fa-btn" style="height: 28px;"><i class="fas fa-check-circle"></i> ${t("gmApproval.apply")}</button>
+            </div>
         </div>`;
 
         html.find(".message-content").append(btnHtml);

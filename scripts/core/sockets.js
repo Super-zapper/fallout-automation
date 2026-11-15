@@ -5,6 +5,8 @@
 // Снаружи всё по-прежнему доступно как window.falconSocket.
 // ==========================================================
 
+import { addAPAsGM } from "./ap.js";
+
 export function register() {
     const socket = socketlib.registerModule("fallout-automation");
     window.falconSocket = socket;
@@ -81,5 +83,8 @@ export function register() {
         return await window.FalconRest.renderInjuryDialog(actor, choices, currentAP, apType);
     });
 
-    console.log("🚀 [Falcon Socket] Зарегистрирован через socketlib (модуль fallout-automation)");
+    // Добавление ОД игроком: менять настройки мира может только ГМ
+    socket.register("addAP", (type, amount) => addAPAsGM(type, amount));
+
+    console.log("[Falcon Socket] Зарегистрирован через socketlib (модуль fallout-automation)");
 }
