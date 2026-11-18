@@ -81,8 +81,19 @@ function isBlastMiss(weapon, attack) {
 const dialogNote = (text, tip, warn = false) =>
     `<div class="fa-dialog-note${warn ? " fa-warn" : ""}" style="flex: 0 0 100%;" data-tooltip="${esc(tip)}">${esc(text)}</div>`;
 
-function hasMajorLeague(actor, weapon) {
-    if (!actor) return false;
+/**
+ * В окно броска урона система передаёт актёра не документом, а строкой UUID (актёр или токен),
+ * в сообщении урона это документ Actor. Приводим всё к актёру.
+ */
+function resolveActor(ref) {
+    if (!ref) return null;
+    const doc = typeof ref === "string" ? fromUuidSync(ref) : ref;
+    return doc?.actor ?? doc ?? null;
+}
+
+function hasMajorLeague(actorRef, weapon) {
+    const actor = resolveActor(actorRef);
+    if (!actor?.items) return false;
     const melee = weapon?.system?.weaponType === "meleeWeapons";
     const twoHanded = weapon?.system?.damage?.weaponQuality?.two_handed?.value;
     if (!melee || !(twoHanded === 1 || twoHanded === true)) return false;
