@@ -673,7 +673,7 @@ export function register() {
             explosiveId = null; // Гарантированно блокируем повторное списание гранаты при перебросе
         
             // Ищем последнее сообщение этого же игрока с нормальной сложностью
-            const lastRollMsg = game.messages.contents.reverse().find(m => 
+            const lastRollMsg = [...game.messages.contents].reverse().find(m => 
                 m.isAuthor && 
                 m.getFlag("world", "fallout-difficulty") !== undefined && 
                 m.getFlag("world", "fallout-difficulty") !== null
@@ -785,7 +785,7 @@ export function register() {
     
         // Вердикт в терминальном стиле: УСПЕХ / ПРОВАЛ, сложность и успехи, плашка скрытной атаки
         const sneakHtml = isSneak
-            ? `<div class="fa-alert" style="text-align: left;">${esc(tr("difficulty.sneakTitle"))}<span class="fa-note">${esc(tr("difficulty.sneakText"))}</span></div>`
+            ? `<div class="fa-alert" data-tooltip="${esc(tr("difficulty.sneakText"))}">${esc(tr("difficulty.sneakTitle"))}</div>`
             : "";
 
         let verdictHtml = `<div class="difficulty-verdict fa-term fa-verdict">

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.6
+- New block "Damage extra rules" (`scripts/core/damage-rules.js`). It replaces the old sneak attack block and the world macro `2_Damage_extra_rules`, so **disable that world macro** after updating:
+  - Blast miss: for weapons with the Blast quality, if the attack did not reach the difficulty, the damage dice are halved and the damage effects are cancelled.
+  - Big Leagues perk: a two-handed melee weapon with effects rolled gains Vicious.
+  - Sneak attack: unchanged rules, now handled in the same pass as the two above, so they no longer overwrite each other's changes to the damage message.
+- Fix: in the damage roll dialog the halved dice count of a blast miss is now written to the dice field the roll actually reads (the old macro only changed the label).
+- Fix: `game.messages.contents.reverse()` reversed the shared message list in place. The module now iterates a copy.
+- Sneak attack with the Big Leagues perk: the perk already makes the weapon Vicious, so the sneak attack gives +2 CD instead of a second Vicious.
+- Dialog: halved dice are shown as `6 → 3` (old value dimmed, new one in red). The perk is found by name: "Высшая Лига" or "Big Leagues".
+- Long explanations (sneak attack, blast miss, Big Leagues) moved into tooltips; chat notes and dialog notes are short and use the terminal style, no emoji.
+
 ## 0.3.4
 - Release workflow: `styles/` is now included in `module.zip`. Without it the new chat styling (terminal look) is missing in a downloaded release.
 - Reopening of treated wounds: the roll is now public. The CD pool is posted to chat as a normal roll message (with a short flavor line), so every player sees it and Dice So Nice animates it by itself. The damage result card waits until the 3D dice stop.

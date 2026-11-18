@@ -26,9 +26,9 @@
           "name": "Persistent damage",
           "hint": "Automatically rolls damage from the Persistent effect at the end of the turn."
         },
-        "sneak": {
-          "name": "Sneak attack: damage bonus",
-          "hint": "A sneak attack gives +2 CD to weapons that already have Vicious and adds the Vicious effect to all other weapons. Works together with the Difficulty Engine."
+        "damageRules": {
+          "name": "Damage extra rules",
+          "hint": "Sneak attack (+2 CD for Vicious weapons, otherwise adds Vicious), the Big Leagues perk and blast miss (damage dice halved, effects cancelled). Replaces the world macro \"2_Damage_extra_rules\": disable that macro. Works together with the Difficulty Engine."
         }
       },
       "icon": {
@@ -167,7 +167,7 @@
       "modifiers": "Modifiers: {value}",
       "hitLocationLabel": "Hit Location:",
       "sneakTitle": "Sneak attack",
-      "sneakText": "Difficulty -1. Damage: +2 CD if the weapon already has Vicious, otherwise the weapon gains the Vicious effect.",
+      "sneakText": "Difficulty -1. Damage: the weapon gains the Vicious effect, or +2 CD if it already has it.",
       "success": "SUCCESS",
       "fail": "FAILURE",
       "verdictDetail": "(Diff: {diff}, Succ: {successes})",
@@ -305,11 +305,16 @@
       "radiation": "Radiation",
       "poison": "Poison"
     },
-    "sneak": {
-      "dialogCd": "Sneak attack: +2 CD added to the damage roll (weapon is already Vicious).",
-      "dialogVicious": "Sneak attack: the weapon gains the Vicious effect (+1 damage per effect rolled).",
-      "noteCd": "Sneak attack: +2 CD on the damage roll",
-      "noteVicious": "Sneak attack: Vicious effect (+{bonus} damage)"
+    "rules": {
+      "blastMiss": "Blast miss",
+      "blastMissTip": "Damage dice are halved and damage effects are cancelled.",
+      "sneakCd": "Sneak attack: +2 CD",
+      "sneakCdTip": "The weapon is already Vicious, so 2 extra combat dice are added to the damage roll.",
+      "sneakVicious": "Sneak attack: Vicious",
+      "sneakViciousTip": "The weapon gains the Vicious effect: +1 damage for every effect rolled.",
+      "sneakNote": "Sneak attack: Vicious",
+      "majorLeague": "Big Leagues: Vicious",
+      "majorLeagueTip": "Big Leagues perk: a two-handed melee weapon gains the Vicious effect (+1 damage for every effect rolled)."
     }
   }
 }

@@ -21,7 +21,12 @@ export function row(key, value) {
     return `<div class="fa-row"><span class="fa-k">${key}</span><span class="fa-v">${value}</span></div>`;
 }
 
-/** Цветная плашка-уведомление внутри карточки. variant: "", "warn", "danger", "rad", "pink", "muted". */
-export function alertBox(text, variant = "", note = "") {
-    return `<div class="fa-alert${variant ? ` fa-${variant}` : ""}">${text}${note ? `<span class="fa-note">${note}</span>` : ""}</div>`;
+/**
+ * Цветная плашка-уведомление внутри карточки. variant: "", "warn", "danger", "rad", "pink", "muted".
+ * note: мелкий текст под плашкой. tip: пояснение во всплывающей подсказке (Foundry data-tooltip),
+ * чтобы длинные объяснения не занимали место в сообщении.
+ */
+export function alertBox(text, variant = "", note = "", tip = "") {
+    const tooltip = tip ? ` data-tooltip="${esc(tip)}"` : "";
+    return `<div class="fa-alert${variant ? ` fa-${variant}` : ""}"${tooltip}>${text}${note ? `<span class="fa-note">${note}</span>` : ""}</div>`;
 }

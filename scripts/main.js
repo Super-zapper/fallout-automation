@@ -16,7 +16,7 @@ import * as gmApproval from "./core/gm-approval.js";
 import * as persistentDamage from "./core/persistent-damage.js";
 import * as sockets from "./core/sockets.js";
 import * as effects from "./core/effects.js";
-import * as sneak from "./core/sneak.js";
+import * as damageRules from "./core/damage-rules.js";
 
 // Порядок важен только для данных: сначала библиотека.
 const BLOCKS = [
@@ -25,7 +25,7 @@ const BLOCKS = [
     { id: "skillCheck",       register: skillCheck.register },
     { id: "rollEngine",       register: rollEngine.register },
     { id: "difficulty",       register: difficulty.register },
-    { id: "sneak",            register: sneak.register },
+    { id: "damageRules",      register: damageRules.register },
     { id: "damage",           register: damage.register },
     { id: "gmApproval",       register: gmApproval.register },
     { id: "persistentDamage", register: persistentDamage.register },
