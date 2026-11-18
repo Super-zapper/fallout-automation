@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.6
+## 0.3.5
 - New block "Damage extra rules" (`scripts/core/damage-rules.js`). It replaces the old sneak attack block and the world macro `2_Damage_extra_rules`, so **disable that world macro** after updating:
   - Blast miss: for weapons with the Blast quality, if the attack did not reach the difficulty, the damage dice are halved and the damage effects are cancelled.
   - Big Leagues perk: a two-handed melee weapon with effects rolled gains Vicious.
