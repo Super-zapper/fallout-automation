@@ -162,3 +162,7 @@
     text-align: left;
 }
 .fa-dialog-note.fa-warn { color: #ffb642; border-color: #6b4b10; border-left-color: #ffb642; background: #1d1403; }
+
+/* Лист NPC: поле ОЗ в верхней строке, значение и максимум вплотную друг к другу по центру */
+.fa-hp-compact { justify-content: center; }
+.fa-hp-compact > label { flex: 0 0 auto; }

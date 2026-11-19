@@ -1,5 +1,5 @@
 // ==========================================================
-// Эффекты модуля: Оглушение, Продолжительный, Распластанность.
+// Эффекты модуля: Оглушение, Продолжительный, Распластанность, Облучение.
 //
 // Откуда берутся данные эффекта (по порядку):
 //   1. Из Convenient Effects, если там уже есть такой эффект
@@ -19,6 +19,10 @@ const DEFS = {
                   legacyNames: ["продолжительный", "persistent"],  ceNames: ["Продолжительный", "Persistent"] },
     prone:      { defaultIcon: "systems/fallout/assets/icons/conditions/prone.svg",
                   legacyNames: ["распластанность", "prone"],       ceNames: ["Распластанность", "Prone"] },
+    // Облучение: -1 к максимуму ОЗ. Блок radiation.js переписывает значение под текущий уровень радиации актёра.
+    radiation:  { defaultIcon: "systems/fallout/assets/icons/conditions/radiation.svg",
+                  changes: [{ key: "system.health.max", mode: 2, value: "-1" }],
+                  legacyNames: ["облучение", "radiation"],         ceNames: ["Облучение", "Radiation"] },
 };
 
 export const EFFECT_KEYS = Object.keys(DEFS);
@@ -114,7 +118,7 @@ function builtInData(key) {
         disabled: false,
         transfer: false,
         statuses: [],
-        changes: [],
+        changes: def.changes ? foundry.utils.deepClone(def.changes) : [],
         flags: { [MODULE_ID]: { effect: key } },
     };
     if (def.duration) data.duration = { ...def.duration };
@@ -212,6 +216,8 @@ export async function registerMissingInCE() {
 
 function matches(effect, key) {
     if (effect.getFlag?.(MODULE_ID, "effect") === key) return true;
+    // Эффект облучения, созданный старым мировым макросом Radiation_for_NPCs
+    if (key === "radiation" && effect.getFlag?.("world", "isRadiationEffect")) return true;
     const name = String(effect.name ?? effect.label ?? "").toLowerCase();
     const names = [...DEFS[key].legacyNames, effectName(key).toLowerCase()];
     // «Продолжительный 3» тоже считается: имя может заканчиваться длительностью

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.7
+- New effect "Radiation" (Облучение). It is taken from Convenient Effects if you already have one with that name, otherwise the built-in one is used (icon from the Fallout system, `-1` to `system.health.max`) and it is added to the CE list like Stunned, Persistent and Prone. The icon can be changed in settings.
+- New block "Radiation" (`scripts/core/radiation.js`), replaces the world macro `Radiation_for_NPCs` (**disable that macro**). When an actor's `system.radiation` changes, the actor gets a "Radiation N" effect that lowers max HP by N, current HP is cut to the new maximum, and the effect is removed when radiation drops to 0. Effects made by the old macro (flag `world.isRadiationEffect`) are recognized, so no duplicates appear. Works for all actor types, like the macro. Does not need a custom CE effect to exist.
+- NPC and creature sheets get a "Radiation" field next to HP on the Abilities tab (initiative and defense move to the row below, full width). The system has this field only on character sheets. The field writes to `system.radiation`, so the effect above is added, updated and removed as usual. It is part of the "Radiation" block.
+
 ## 0.3.6
 - Fix: the damage roll dialog threw `Cannot read properties of undefined (reading 'some')` (hook `renderDialogD6`). Sneak attack with the Big Leagues perk did not add the +2 CD in the damage roll dialog (only the chat note appeared). The system passes the actor to that dialog as a UUID string, not as an actor document, so the perk was not found there. The actor is now resolved first.
 

@@ -17,6 +17,7 @@ import * as persistentDamage from "./core/persistent-damage.js";
 import * as sockets from "./core/sockets.js";
 import * as effects from "./core/effects.js";
 import * as damageRules from "./core/damage-rules.js";
+import * as radiation from "./core/radiation.js";
 
 // Порядок важен только для данных: сначала библиотека.
 const BLOCKS = [
@@ -29,6 +30,7 @@ const BLOCKS = [
     { id: "damage",           register: damage.register },
     { id: "gmApproval",       register: gmApproval.register },
     { id: "persistentDamage", register: persistentDamage.register },
+    { id: "radiation",        register: radiation.register },
 ];
 
 // Если Foundry не подхватил lang/*.json из module.json (так бывает, пока сервер

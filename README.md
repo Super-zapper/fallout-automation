@@ -89,6 +89,10 @@ The module takes the damage dealt, determines the body part it hit, determines t
 
 If the damage has the Stun quality, then when at least one effect is rolled on the damage dice, the target gets the Stunned effect.
 
+If damage has the "Piercing X" quality, then for each effect is rolled, X points of armor will be ignored.
+
+<img src="docs/media/screenshot9.png" alt="Сообщение Проникающего урона" width="423">
+
 If the damage has the Persistent quality, then when at least one effect is rolled on the damage dice, the target gets the Persistent effect. At the end of the target's turn it takes damage from this weapon again, as in the screenshot below. For the Persistent effect to be removed automatically, you need the Times Up module.
 
 <img src="docs/media/screenshot8.png" alt="Persistent damage message" width="423">
@@ -215,6 +219,10 @@ https://github.com/Super-zapper/fallout-automation/releases/latest/download/modu
 Берётся нанесённый урон, определяется часть тела, на которую он пришёлся, определяется защита от данного типа урона на этой части тела, а затем она вычитается из урона. Если у цели иммунитет к этому виду урона, он не наносится. Если оружие наносит больше одного вида урона (плазма), то выбирается наименьшее значение защиты. Урон радиацией применяется отдельно, после остального урона.
 
 Если урон обладал свойством «Оглушение», то при выпадении хотя бы одного эффекта на кубах урона цель получит эффект «Оглушение».
+
+Если урон обладал свойством «Проникающий X», то за каждый выпавший эффект будет проигнорировано X брони. 
+
+<img src="docs/media/screenshot9.png" alt="Сообщение Проникающего урона" width="423">
 
 Если урон обладал свойством «Продолжительный», то при выпадении хотя бы одного эффекта на кубах урона цель получит эффект «Продолжительный». В конце хода цели она снова получит урон от этого оружия, как на скриншоте ниже. Чтобы эффект «Продолжительный» снимался автоматически, необходим модуль Times Up.
 

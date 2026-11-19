@@ -29,6 +29,10 @@
         "damageRules": {
           "name": "Damage extra rules",
           "hint": "Sneak attack (+2 CD for Vicious weapons, otherwise adds Vicious), the Big Leagues perk and blast miss (damage dice halved, effects cancelled). Replaces the world macro \"2_Damage_extra_rules\": disable that macro. Works together with the Difficulty Engine."
+        },
+        "radiation": {
+          "name": "Radiation: effect and max HP",
+          "hint": "When an actor's radiation changes, adds a \"Radiation N\" effect that lowers max HP by N, and cuts current HP down to the new maximum. Removes the effect when radiation drops to 0. Replaces the world macro \"Radiation_for_NPCs\": disable that macro. Also adds a \"Radiation\" field to NPC and creature sheets."
         }
       },
       "icon": {
@@ -41,6 +45,9 @@
         },
         "prone": {
           "name": "Icon of the Prone effect"
+        },
+        "radiation": {
+          "name": "Icon of the \"Radiation\" effect"
         }
       },
       "ceRegister": {
@@ -58,6 +65,9 @@
       },
       "prone": {
         "name": "Prone"
+      },
+      "radiation": {
+        "name": "Radiation"
       }
     },
     "rollEngine": {
