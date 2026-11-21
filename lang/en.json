@@ -4,7 +4,7 @@
       "blocks": {
         "skillCheck": {
           "name": "Skill check with GM confirmation",
-          "hint": "The runFalloutCheck function: a skill roll whose result the GM confirms."
+          "hint": "The skill check window: skill, attribute and difficulty are chosen in one window (the \"Test\" button in Argon HUD opens it). Also the runFalloutCheck function for GM macros: a roll whose result the GM confirms."
         },
         "rollEngine": {
           "name": "Roll Engine (targets and hit location)",
@@ -325,6 +325,18 @@
       "sneakNote": "Sneak attack: Vicious",
       "majorLeague": "Big Leagues: Vicious",
       "majorLeagueTip": "Big Leagues perk: a two-handed melee weapon gains the Vicious effect (+1 damage for every effect rolled)."
+    },
+    "skillSelect": {
+      "skill": "Skill",
+      "attr": "Attribute",
+      "none": "— No skill —",
+      "creature": {
+        "body": "Body",
+        "mind": "Mind",
+        "melee": "Melee",
+        "guns": "Guns",
+        "other": "Other"
+      }
     }
   }
 }

@@ -8,6 +8,7 @@ import * as fx from "./effects.js";
 import { addAP } from "./ap.js";
 import { t as tr } from "../utils/i18n.js";
 import { esc, row } from "../utils/html.js";
+import { setupSkillSelectors, difficultyBonus } from "./skill-selectors.js";
 
 
 // ==========================================================
@@ -141,7 +142,8 @@ export function register() {
         }
 
         const valInInput = parseInt(html.find('[name="attribute"]').val());
-        return Object.keys(actor.system.attributes).find(k => actor.system.attributes[k].value === valInInput) || null;
+        const stats = actor.system.attributes ?? {};   // у существ (creature) атрибутов нет
+        return Object.keys(stats).find(k => stats[k].value === valInInput) || null;
     }
 
     // ==========================================
@@ -171,7 +173,11 @@ export function register() {
 
         if (html.find('[name="difficulty"]').length > 0) return;
 
-        const actor = resolveActor(app);
+        // Контекст от нашей точки входа (кнопка «Проверка», runFalloutCheck): какой навык и атрибут выбрать
+        const forced = window.tempFaSkillCheck ?? null;
+        delete window.tempFaSkillCheck;
+
+        const actor = forced?.actor ?? resolveActor(app);
         const weapon = app.object?.item || app.item;
         const isWeaponRoll = weapon?.type === "weapon"; // Проверка: это атака?const isWeaponRoll = weapon?.type === "weapon"; 
 
@@ -376,13 +382,14 @@ export function register() {
     
         // 2. Ищем название навыка
         let skillNameForEffect = null;
+        let matchedSkillItem = null;
         const title = (app.rollName || "").toLowerCase();
     
         if (isWeaponRoll) {
             skillNameForEffect = weapon.system.weaponType === "custom" ? weapon.system.skill : CONFIG.FALLOUT.WEAPON_SKILLS[weapon.system.weaponType];
         } else {
             const skillItem = actor?.items.find(i => i.type === "skill" && title.includes((game.i18n.has(`FALLOUT.SKILL.${i.name}`) ? game.i18n.localize(`FALLOUT.SKILL.${i.name}`) : i.name).toLowerCase()));
-            if (skillItem) skillNameForEffect = skillItem.name;
+            if (skillItem) { skillNameForEffect = skillItem.name; matchedSkillItem = skillItem; }
         }
     
         // 3. Формируем ключ навыка
@@ -546,7 +553,7 @@ export function register() {
                     <div style="flex: 1;"></div>
                 </div>
                 <div style="padding: 2px 5px 5px 5px; font-size: 0.75em; color: #444; font-style: italic; text-align: right;">
-                    ${tr("difficulty.modifiers", { value: `${effectDiffBonus > 0 ? '+' : ''}${effectDiffBonus}` })} ${attrKey ? `[${attrKey.toUpperCase()}]` : ""}
+                    <span class="fa-mod-text">${tr("difficulty.modifiers", { value: `${effectDiffBonus > 0 ? '+' : ''}${effectDiffBonus}` })} ${attrKey ? `[${attrKey.toUpperCase()}]` : ""}</span>
                 </div>`;
         }
 
@@ -559,6 +566,18 @@ export function register() {
                 renderBreakdown(html);
                 // Зона поражения и скрытная атака меняют строку разбора
                 html.find('[name="hit-location"], [name="sneak-attack"]').on("change", () => renderBreakdown(html));
+            }
+            // Навык и атрибут выбираются в этом же окне; смена пересчитывает числа и сложность
+            if (!isWeaponRoll) {
+                setupSkillSelectors({
+                    app, html, actor, skillItem: matchedSkillItem, attrKey, forced,
+                    onChange: ({ skill, attr }) => {
+                        effectDiffBonus = difficultyBonus(actor, attr.key, skill.name);
+                        const base = parseInt(html.find('[name="gm-base-diff"]').val()) || 0;
+                        html.find('[name="difficulty"]').val(Math.max(0, base + effectDiffBonus));
+                        html.find(".fa-mod-text").text(`${tr("difficulty.modifiers", { value: `${effectDiffBonus > 0 ? "+" : ""}${effectDiffBonus}` })} [${attr.key.toUpperCase()}]`);
+                    }
+                });
             }
             if (window.tempActionId) {
                 // Добавляем ID прямо в атрибут формы, так надежнее
@@ -709,11 +728,16 @@ export function register() {
         // Чистим глобалку (на всякий случай)
         delete window.tempActionId;
 
+        // Навык и атрибут, выбранные в окне (если в окне были строки выбора): показываем их ГМу в запросе подтверждения
+        const chosenSkill = dialogHtml.find('[name="fa-skill"] option:selected').text();
+        const chosenAttr = dialogHtml.find('[name="fa-attr"] option:selected').text();
+
         let updates = { 
             "flags.world.fallout-difficulty": currentDiff, 
             "flags.world.fallout-sneak": isSneak,
             "flags.world.fallout-ap-type": (!actor?.hasPlayerOwner) ? "gmAP" : "partyAP"
         };
+        if (chosenSkill) updates["flags.world.fallout-skill-label"] = chosenAttr ? `${chosenSkill} [${chosenAttr}]` : chosenSkill;
 
         // --- ПЕРЕХВАТ ЗОНЫ ПОРАЖЕНИЯ (Fix для APC и Рандома) ---
         const selectedLocation = dialogHtml.find('[name="hit-location"]').val();

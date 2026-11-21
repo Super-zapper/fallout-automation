@@ -166,3 +166,25 @@
 /* Лист NPC: поле ОЗ в верхней строке, значение и максимум вплотную друг к другу по центру */
 .fa-hp-compact { justify-content: center; }
 .fa-hp-compact > label { flex: 0 0 auto; }
+
+/* Окно броска навыка: строки выбора навыка и атрибута (цвета атрибутов задаются из скрипта) */
+.fa-skillsel {
+    display: flex;
+    flex: 0 0 100%;
+    width: 100%;
+    gap: 8px;
+    padding: 5px;
+    border-bottom: 1px solid #7a7971;
+    box-sizing: border-box;
+}
+.fa-skillsel .fa-sel { flex: 1 1 50%; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.fa-skillsel label { font-size: 0.75em; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+.fa-skillsel select {
+    height: 26px;
+    background: #000;
+    border: 1px solid #18ff62;
+    border-radius: 2px;
+    font-family: "Share Tech Mono", "Courier New", monospace;
+    font-size: 13px;
+}
+.fa-skillsel select option { background: #000; }

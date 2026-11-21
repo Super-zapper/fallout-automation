@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.8
+- One window for skill checks. The roll dialog now has a skill row and an attribute row (colored by attribute) at the top, the usual numbers and dice, and the difficulty row (GM base and final). Changing the skill switches the attribute to the skill's default one (you can override it), and the attribute value, skill value, tag, roll name and difficulty modifiers are updated on the fly. It appears on skill rolls from the character sheet and on the Argon HUD "Test" check. Plain attribute rolls, initiative and weapon attacks are not changed.
+- The Argon HUD "Test" button now opens this window by itself (the module watches for the button's chat message, so the world script `2_HUD_buttons` is not needed for it, and the macro "Проверка Навыка" is no longer needed). It is a normal roll, no GM confirmation. A macro can open it with `window.openFalloutSkillCheck(actor)`.
+- `runFalloutCheck` (roll whose result the GM confirms) is kept for GM macros; its confirmation card shows the skill and attribute that were actually chosen in the window.
+- Creatures: the window offers Body / Mind and Melee / Guns / Other (no "No skill" entry).
+- Fix: the difficulty engine no longer throws on actors without `system.attributes` (creatures).
+
 ## 0.3.7
 - New effect "Radiation" (Облучение). It is taken from Convenient Effects if you already have one with that name, otherwise the built-in one is used (icon from the Fallout system, `-1` to `system.health.max`) and it is added to the CE list like Stunned, Persistent and Prone. The icon can be changed in settings.
 - New block "Radiation" (`scripts/core/radiation.js`), replaces the world macro `Radiation_for_NPCs` (**disable that macro**). When an actor's `system.radiation` changes, the actor gets a "Radiation N" effect that lowers max HP by N, current HP is cut to the new maximum, and the effect is removed when radiation drops to 0. Effects made by the old macro (flag `world.isRadiationEffect`) are recognized, so no duplicates appear. Works for all actor types, like the macro. Does not need a custom CE effect to exist.
