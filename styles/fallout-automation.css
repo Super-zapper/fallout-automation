@@ -188,3 +188,124 @@
     font-size: 13px;
 }
 .fa-skillsel select option { background: #000; }
+
+/* ==========================================================
+   Терминальный стиль для всего окна (окна первой помощи и ремонта): класс fa-window на окне,
+   внутри содержимого карточка fa-term fa-flat без собственной рамки.
+   ========================================================== */
+.window-app.fa-window {
+    --fa-bg: #051405;
+    --fa-bg-2: #0a1f0a;
+    --fa-line: #1b5e20;
+    --fa-main: #4caf50;
+    --fa-bright: #18ff62;
+    --fa-dim: #6e9c72;
+    background-color: var(--fa-bg);
+    background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%);
+    background-size: 100% 3px;
+    border: 1px solid var(--fa-line);
+    box-shadow: 0 0 14px rgba(24, 255, 98, 0.25), inset 0 0 18px rgba(24, 255, 98, 0.06);
+    color: var(--fa-main);
+    font-family: "Share Tech Mono", "Courier New", monospace;
+}
+.window-app.fa-window .window-header {
+    background: var(--fa-bg-2);
+    border: 0;
+    border-bottom: 1px solid var(--fa-line);
+    color: var(--fa-bright);
+    text-shadow: 0 0 5px rgba(24, 255, 98, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.window-app.fa-window .window-header .window-title,
+.window-app.fa-window .window-header a,
+.window-app.fa-window .window-header button { color: var(--fa-bright); text-shadow: inherit; }
+.window-app.fa-window .window-content { background: transparent; color: var(--fa-main); padding: 10px; }
+.window-app.fa-window .window-resizable-handle { color: var(--fa-main); }
+
+/* Карточка внутри окна без своей рамки и фона */
+.fa-term.fa-flat {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    text-shadow: none;
+}
+.fa-term.fa-flat .fa-title { font-size: 12px; margin-bottom: 8px; }
+.fa-term.fa-flat .fa-row { padding: 2px 0; font-size: 13px; }
+.fa-term.fa-flat .fa-row > .fa-v { color: var(--fa-bright); }
+.fa-term.fa-flat .fa-box { margin: 10px 0; padding: 8px; border: 1px solid var(--fa-line); background: rgba(0, 0, 0, 0.35); }
+.fa-term.fa-flat .fa-box label { color: var(--fa-main); font-size: 12px; }
+.fa-term.fa-flat .fa-check { display: flex; align-items: center; gap: 8px; margin: 8px 0; color: var(--fa-bright); cursor: pointer; }
+.fa-term.fa-flat .fa-check input { margin: 0; accent-color: var(--fa-bright); }
+.fa-term.fa-flat .fa-check:has(input:disabled) { opacity: 0.45; cursor: default; }
+.fa-term.fa-flat .fa-stepper { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.fa-term.fa-flat .fa-stepper input { flex: 1; text-align: center; pointer-events: none; }
+.fa-term.fa-flat .fa-stepper button { width: 32px; }
+.fa-term.fa-flat .fa-slot { min-height: 1.4em; margin-top: 6px; }
+.fa-term.fa-flat select { width: 100%; height: 28px; margin: 4px 0 8px; }
+.fa-term.fa-flat p { margin: 6px 0; }
+.fa-term.fa-flat p.fa-center { text-align: center; }
+
+/* Кнопки окна */
+.window-app.fa-window .dialog-buttons { gap: 6px; margin-top: 10px; }
+.window-app.fa-window .dialog-buttons button.dialog-button {
+    height: 30px;
+    background: transparent;
+    color: var(--fa-bright);
+    border: 1px solid var(--fa-bright);
+    border-radius: 2px;
+    font-family: inherit;
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    line-height: 1;
+    transition: background 0.15s, color 0.15s;
+}
+.window-app.fa-window .dialog-buttons button.dialog-button:hover:not(:disabled) { background: var(--fa-bright); color: #001a06; }
+.window-app.fa-window .dialog-buttons button.dialog-button:disabled { color: var(--fa-dim); border-color: var(--fa-line); opacity: 0.55; cursor: not-allowed; }
+.window-app.fa-window .dialog-buttons button.dialog-button.default { box-shadow: 0 0 6px rgba(24, 255, 98, 0.4); }
+
+/* Окна первой помощи: подпись и число рядом, чтобы они читались вместе */
+.fa-term.fa-flat .fa-row { justify-content: flex-start; gap: 12px; }
+.fa-term.fa-flat .fa-row > .fa-k { flex: 0 0 auto; }
+.fa-term.fa-flat .fa-row > .fa-k::after { content: ":"; }
+.fa-term.fa-flat .fa-row > .fa-v { flex: 0 1 auto; text-align: left; }
+
+/* ==========================================================
+   Выбор травм по картинке тела (картинки берутся из установленной системы Fallout)
+   ========================================================== */
+.fa-body { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 8px 0; }
+.fa-body-screen {
+    position: relative;
+    width: 270px;
+    height: 270px;
+    background: #0a1914;
+    border: 1px solid var(--fa-line, #1b5e20);
+    box-shadow: inset 0 0 14px rgba(24, 255, 98, 0.12);
+}
+.fa-body-screen.fa-flash { box-shadow: inset 0 0 18px rgba(255, 82, 82, 0.55); }
+.fa-body-layer {
+    position: absolute;
+    inset: 0;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    pointer-events: none;
+    transition: filter 0.15s;
+}
+.fa-body-layer.fa-selected { filter: drop-shadow(0 0 5px #18ff62) drop-shadow(0 0 2px #18ff62) !important; }
+.fa-body-badge {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    padding: 0 5px;
+    border: 1px solid #7a1f1f;
+    background: #000;
+    color: #ff5252;
+    font-size: 11px;
+    line-height: 16px;
+    pointer-events: none;
+}
+.fa-body-badge.fa-active { border-color: #18ff62; color: #18ff62; }
+.fa-body-info { width: 100%; }
+.fa-body-info .fa-note { margin: 2px 0 6px; }

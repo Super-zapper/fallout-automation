@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.4.0
+- **Take Chem** (minor action, no check, effect at once). Stimpak: 4 HP or one injury (your choice), a dying target is stabilized; healing salve: HP to a stable target; RadAway: removes radiation; Robot Repair Kit (on machines): works like a stimpak. The target is yourself or an adjacent targeted token (you are asked if both are possible). It starts:
+  - from the chem button of the Argon HUD and from the consume button of the character sheet: the module wraps `actor.consumeItem` for these items only, everything else keeps the system behavior;
+  - from the compendium macro "Take Chem" (see below), or `window.falloutTakeChem({ item, actor, targetToken })`.
+  - Closing the window or pressing Cancel in the injury / HP choice cancels the action: the chem is only used up on Apply.
+- **Robot Repair Kit works like a stimpak** in the First Aid / Repair action as well: HP or injury choice, automatic stabilization, choice after a failed roll, several injuries with a body choice. Medicine and repair now share one engine (`aid-shared.js`).
+- **Stimpak at 0 HP stabilizes in any case**, also when it is used on an injury (+1 HP, no longer dying); the Stabilize button is not offered then. Used on HP it gives the 1 HP of stabilization plus its own HP.
+- **Choose injuries on the body picture** for humans (characters and humanoid NPCs): the Pip-Boy body images with healthy / treated / open injury states. Left click treats an injury in that part (click again for the next injury of the same part), right click undoes, a badge shows `assigned/open`. Robots, creatures and vehicles keep the list. The images are not part of the module: they are loaded from the installed Fallout system (`systems/fallout/assets/ui/pipboy-body/character/...`). If they cannot be loaded, the list stays visible.
+- **Macros compendium** is now created in the world at startup (by the GM) with macros "First Aid / Repair" and "Take Chem", named in the interface language, like the Convenient Effects names (a macro you renamed is left alone; the text of a macro is updated when the module changes it). It replaces the static compendium of the module.
+- When injuries are chosen on the picture, the count badges are no longer on top of the image: left of the head, centered on the torso, under the arms, left of the left leg and right of the right leg, like in the sheet.
+- When injuries are chosen on the picture, Apply stays disabled until all treatments are assigned (except when there are fewer injuries than treatments).
+- Injuries of characters and robots are read only from the `injuries` array, the stale `injuryOpenCount` / `injuryTreatedCount` counters are ignored. NPCs and creatures use the counters, vehicles use the larger of both.
+
+## 0.3.9
+- New block "First aid and repair" (`scripts/core/first-aid.js`), replaces the world macros `14_First_aid_button` and `17_Repair_button` (**disable both**). One engine, two modes: Medicine (living targets) and Repair (robots, vehicles, machines). The Argon HUD buttons "First Aid - Medicine" and "First Aid - Repair" start it, as before.
+  - Checks: target, not dead/destroyed, in combat, living or machine, adjacent, anything to treat. Difficulty is the number of open injuries (+2 for repair, +1 on yourself). The roll still goes through the GM-confirmed check.
+  - Before the roll: medicine choice (stimpaks, salve, RadAway) or the repair kit question. After a success: restore HP / treat or repair injury / stabilize, with AP spending, First Aid Kit effect and the Healer perk (+rank). On a failed roll with a medicine or kit used, only its basic effect applies.
+  - Names of items, effects and perks are matched in Russian and English (Stimpak, Super Stimpak, Healing Salve, RadAway, Robot Repair Kit, Healer, Dying, Unconscious, ...).
+  - NPC and creature injuries are now seen and treated (they store counters, not an array, like in the damage engine).
+- All windows and chat messages of this block use the terminal style on the whole window (class `fa-window`), no emoji, English and Russian.
+- Fixes and rules in first aid and repair:
+  - Spending AP no longer fails with `adjustAP` of undefined: AP are spent through the same helper as the verdict button (works with the new AP tracker, and for players through the GM).
+  - The "Bring to consciousness" option is hidden when the target is conscious.
+  - In the HP windows each label is now next to its number.
+  - Injuries of vehicles are seen and treated (they use counters). Counters and arrays are both read, the larger value counts.
+  - Body part names come from the module library by body type (vehicles, creatures, robots, humanoids).
+  - Argon HUD buttons are recognized by meaning ("First Aid - Medicine" / "Первая Помощь - Медицина", same for Repair), so the Russian HUD text is caught too.
+  - Stimpaks: a choice of what the stimpak goes to (HP, or treating injuries: 1, 2 for the Super Stimpak) in the first aid menu, independent of the action buttons. It applies to Restore HP, Treat injury and Stabilize, so all four combinations are possible. If the roll fails, the stimpak is still used up and you choose HP or injuries; the pre-roll window now says so.
+- More first aid fixes:
+  - Argon HUD buttons are caught for real now: the pattern used `\w`, which does not match Cyrillic, so "Первая Помощь" was never recognized. An unrecognized first-aid-like roll name is logged to the console.
+  - Vehicles have no Stabilize button (they cannot be dying) and can be repaired at 0 HP.
+  - The window now resizes when the injury choice appears after a failed stimpak roll.
+  - Injury choices cannot pick the same injury twice: a part can be chosen as many times as it has open injuries, and defaults are spread over different parts. If the only injury goes to the action, the stimpak restores HP instead (with a note).
+  - Restore HP / Treat injury / Stabilize windows have Back instead of Cancel (RadAway is not applied twice). If only one action is available, the menu is skipped.
+- New compendium "Fallout Automation: Macros" with the macro "First Aid / Первая помощь": it starts first aid or repair depending on the target, without Argon HUD. The same is available from other macros as `window.falloutFirstAid({ mode })`. `packs` is now included in the release `module.zip`.
+
 ## 0.3.8
 - One window for skill checks. The roll dialog now has a skill row and an attribute row (colored by attribute) at the top, the usual numbers and dice, and the difficulty row (GM base and final). Changing the skill switches the attribute to the skill's default one (you can override it), and the attribute value, skill value, tag, roll name and difficulty modifiers are updated on the fly. It appears on skill rolls from the character sheet and on the Argon HUD "Test" check. Plain attribute rolls, initiative and weapon attacks are not changed.
 - The Argon HUD "Test" button now opens this window by itself (the module watches for the button's chat message, so the world script `2_HUD_buttons` is not needed for it, and the macro "Проверка Навыка" is no longer needed). It is a normal roll, no GM confirmation. A macro can open it with `window.openFalloutSkillCheck(actor)`.
